@@ -4,9 +4,9 @@ import (
 	"fmt"
 	_ "fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sts"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
+	awsController "github.com/openshift/aws-account-shredder/pkg/awsController"
 	"os"
 )
 
@@ -25,7 +25,6 @@ var (
 
 func main() {
 
-	// creating a new cient with us-east-1 region by default
 	client, err := clientpkg.NewClient(accessID, secretKey, "", "us-east-1")
 	if err != nil {
 		fmt.Println("ERROR:", err)
@@ -42,14 +41,6 @@ func main() {
 	assumedSecretKey := *assumedRole.Credentials.SecretAccessKey
 	assumedSessionToken := *assumedRole.Credentials.SessionToken
 
-	// for debugging purpose only.
-	//	fmt.Println("new access id : ", assumedAccessKey)
-	//	fmt.Println("new secret key is", aithub
-	//	ssumedSecretKey)
-	//	fmt.Println("new session token\n\n", assumedSessionToken)
-
-	// looping through all the regions
-
 	for _, region := range supportedRegions {
 		fmt.Println("\n EC2 instances in region ", region)
 		assumedRoleClient, err := clientpkg.NewClient(assumedAccessKey, assumedSecretKey, assumedSessionToken, region)
@@ -57,23 +48,9 @@ func main() {
 			fmt.Println("ERROR:", err)
 			os.Exit(1)
 		}
-		// just for debugging purpose
-		//fmt.Println("new_client is ", client2)
 
-		token := ""
-		for {
-			ec2Descriptions, err := assumedRoleClient.DescribeInstances(&ec2.DescribeInstancesInput{NextToken: aws.String(token)})
-			if err != nil {
-				fmt.Println("ERROR:", err)
-				os.Exit(1)
-			}
-			fmt.Println("EC2 instances", ec2Descriptions)
-			if ec2Descriptions.NextToken != nil {
-				token = *ec2Descriptions.NextToken
-			} else {
-				break
-			}
-		}
+		awsController.ListEc2Instances(assumedRoleClient)
+		awsController.ListS3Instances(assumedRoleClient)
+
 	}
-
 }

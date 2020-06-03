@@ -8,6 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/organizations/organizationsiface"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 )
@@ -29,6 +32,12 @@ type Client interface {
 	GetCallerIdentity(*sts.GetCallerIdentityInput) (*sts.GetCallerIdentityOutput, error)
 	GetFederationToken(*sts.GetFederationTokenInput) (*sts.GetFederationTokenOutput, error)
 
+	// S3
+	ListBuckets(*s3.ListBucketsInput) (*s3.ListBucketsOutput, error)
+	DeleteBucket(*s3.DeleteBucketInput) (*s3.DeleteBucketOutput, error)
+	BatchDeleteBucketObjects(bucketName *string) error
+	ListObjectsV2(*s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error)
+
 	//Organizations
 	ListAccounts(*organizations.ListAccountsInput) (*organizations.ListAccountsOutput, error)
 	CreateAccount(*organizations.CreateAccountInput) (*organizations.CreateAccountOutput, error)
@@ -43,6 +52,7 @@ type awsClient struct {
 	ec2Client ec2iface.EC2API
 	stsClient stsiface.STSAPI
 	orgClient organizationsiface.OrganizationsAPI
+	s3Client  s3iface.S3API
 }
 
 func (c *awsClient) RunInstances(input *ec2.RunInstancesInput) (*ec2.Reservation, error) {
@@ -121,6 +131,28 @@ func (c *awsClient) ListChildren(input *organizations.ListChildrenInput) (*organ
 	return c.orgClient.ListChildren(input)
 }
 
+func (c *awsClient) ListBuckets(input *s3.ListBucketsInput) (*s3.ListBucketsOutput, error) {
+	return c.s3Client.ListBuckets(input)
+}
+
+func (c *awsClient) DeleteBucket(input *s3.DeleteBucketInput) (*s3.DeleteBucketOutput, error) {
+	return c.s3Client.DeleteBucket(input)
+}
+
+func (c *awsClient) ListObjectsV2(input *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error) {
+	return c.s3Client.ListObjectsV2(input)
+}
+
+func (c *awsClient) BatchDeleteBucketObjects(bucketName *string) error {
+	// Setup BatchDeleteItrerator to iterate through a list of objects
+	iter := s3manager.NewDeleteListIterator(c.s3Client, &s3.ListObjectsInput{
+		Bucket: bucketName,
+	})
+
+	// Traverse iterator deleting each object
+	return s3manager.NewBatchDeleteWithClient(c.s3Client).Delete(aws.BackgroundContext(), iter)
+}
+
 // NewClient creates our client wrapper object for the actual AWS clients we use.
 func NewClient(awsAccessID, awsAccessSecret, token, region string) (Client, error) {
 	awsConfig := &aws.Config{Region: aws.String(region)}
@@ -136,5 +168,6 @@ func NewClient(awsAccessID, awsAccessSecret, token, region string) (Client, erro
 		ec2Client: ec2.New(s),
 		stsClient: sts.New(s),
 		orgClient: organizations.New(s),
+		s3Client:  s3.New(s),
 	}, nil
 }
