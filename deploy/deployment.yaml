@@ -14,6 +14,7 @@ spec:
       labels:
         app: aws-account-shredder
     spec:
+      serviceAccountName: aws-account-shredder
       containers:
       - name: aws-account-operator
         image: quay.io/agautam/aws-account-shredder:latest
