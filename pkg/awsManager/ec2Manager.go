@@ -1,4 +1,4 @@
-package awsController
+package awsManager
 
 import (
 	"fmt"
