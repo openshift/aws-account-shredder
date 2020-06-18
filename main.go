@@ -5,7 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sts"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
-	awsController "github.com/openshift/aws-account-shredder/pkg/awsController"
+	"github.com/openshift/aws-account-shredder/pkg/awsManager"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	kubeRest "k8s.io/client-go/rest"
@@ -86,8 +86,7 @@ func main() {
 				os.Exit(1)
 			}
 
-			awsController.ListEc2Instances(assumedRoleClient)
-			awsController.ListS3Instances(assumedRoleClient)
+			awsManager.CleanS3Instances(assumedRoleClient)
 		}
 
 	}
