@@ -1,10 +1,13 @@
-FROM registry.svc.ci.openshift.org/openshift/release:golang-1.14 AS builder
-COPY . /go/src/github.com/openshift/aws-account-shredder
-WORKDIR /go/src/github.com/openshift/aws-account-shredder
-RUN go get ./...
+FROM registry.svc.ci.openshift.org/openshift/release:golang-1.13 AS builder
 
-LABEL io.openshift.managed.name="aws-account-shredder" \
-      io.openshift.managed.description="this is a description"
-
+RUN mkdir -p /workdir
+WORKDIR /workdir
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
 RUN go build main.go
-CMD go run main.go
+
+####
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+COPY --from=builder /workdir/* /usr/local/bin/
+CMD main
