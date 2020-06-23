@@ -3,7 +3,7 @@ FROM registry.svc.ci.openshift.org/openshift/release:golang-1.13 AS builder
 RUN mkdir -p /workdir
 WORKDIR /workdir
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod vendor
 COPY . .
 RUN go build main.go
 
