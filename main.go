@@ -1,23 +1,22 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/openshift/aws-account-operator/pkg/apis/aws/v1alpha1"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
 	"github.com/openshift/aws-account-shredder/pkg/awsManager"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	"github.com/openshift/aws-account-shredder/pkg/awsv1alpha1"
+	k8sWrapper "github.com/openshift/aws-account-shredder/pkg/k8sWrapper"
+	clientGoScheme "k8s.io/client-go/kubernetes/scheme"
 	kubeRest "k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	accountID               = "" // it is 12 digit account id , the sub level account , for future use and debugging purpose
-	sessionName             = ""
-	awsCredsSecretIDKey     = "aws_access_key_id"
-	awsCredsSecretAccessKey = "aws_secret_access_key"
-	namespace               = "aws-account-shredder"             // change the namespace according to your environment. this is the namespace, from where secret has to retreived from
-	secretName              = "aws-account-shredder-credentials" // the name of the secret to be read
+	sessionName = "awsAccountShredder"
 )
 
 var (
@@ -31,54 +30,59 @@ func main() {
 		fmt.Println(err)
 	}
 
-	// creates the clientset
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// creating a client for reading the AccountID
+	cli, err := client.New(config, client.Options{})
 
-	// get secret "aws-account-shredder-credentials" from namespace "aws-account-shredder"
-	secrets, err := clientset.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
-	if err != nil {
-		fmt.Println("ERROR:", err)
-	}
+	//integrating the account CRD to this project
+	v1alpha1.AddToScheme(clientGoScheme.Scheme)
 
-	accessKeyID, ok := secrets.Data[awsCredsSecretIDKey]
-	if !ok {
-		fmt.Println("ERROR:", err)
-	}
-	secretAccessKey, ok := secrets.Data[awsCredsSecretAccessKey]
-	if !ok {
-		fmt.Println("ERROR:", err)
+	//reading the aws-account-shredder-credentials secret
+	accessKeyID, secretAccessKey, err := k8sWrapper.GetAWSAccountCredentials(context.TODO(), cli)
+	if err != nil {
+		fmt.Println("ERROR: ", err)
 	}
 
 	// creating a new AWSclient with the information extracted from the secret file
-	client, err := clientpkg.NewClient(string(accessKeyID), string(secretAccessKey), "", "us-east-1")
+	awsClient, err := clientpkg.NewClient(accessKeyID, secretAccessKey, "", "us-east-1")
 	if err != nil {
 		fmt.Println("ERROR:", err)
 	}
+
 	for {
-
-		// assuming roles for the given AccountID
-		RoleArnParameter := "arn:aws:iam::" + accountID + ":role/OrganizationAccountAccessRole"
-		assumedRole, err := client.AssumeRole(&sts.AssumeRoleInput{RoleArn: aws.String(RoleArnParameter), RoleSessionName: aws.String(sessionName)})
+		// reading the account ID to be cleared
+		accountIDlist, err := awsv1alpha1.GetAccountIDsToReset(context.TODO(), cli)
 		if err != nil {
-			fmt.Println("ERROR:", err)
-
+			fmt.Println("ERROR: ", err)
 		}
-		assumedAccessKey := *assumedRole.Credentials.AccessKeyId
-		assumedSecretKey := *assumedRole.Credentials.SecretAccessKey
-		assumedSessionToken := *assumedRole.Credentials.SessionToken
 
-		for _, region := range supportedRegions {
-			fmt.Println("\n EC2 instances in region ", region)
-			assumedRoleClient, err := clientpkg.NewClient(assumedAccessKey, assumedSecretKey, assumedSessionToken, region)
+		for _, accountID := range accountIDlist {
+			fmt.Println("Now Processing AccountID: ", accountID)
+
+			// assuming roles for the given AccountID
+			RoleArnParameter := "arn:aws:iam::" + accountID + ":role/OrganizationAccountAccessRole"
+			assumedRole, err := awsClient.AssumeRole(&sts.AssumeRoleInput{RoleArn: aws.String(RoleArnParameter), RoleSessionName: aws.String(sessionName)})
 			if err != nil {
 				fmt.Println("ERROR:", err)
+				// need continue , or else the next line will throw an error ( non existing pointer being deferenced)
+				// hence moving on to next element
+				continue
+
+			}
+			assumedAccessKey := *assumedRole.Credentials.AccessKeyId
+			assumedSecretKey := *assumedRole.Credentials.SecretAccessKey
+			assumedSessionToken := *assumedRole.Credentials.SessionToken
+
+			for _, region := range supportedRegions {
+				fmt.Println("\n Current Region : ", region)
+				assumedRoleClient, err := clientpkg.NewClient(assumedAccessKey, assumedSecretKey, assumedSessionToken, region)
+				if err != nil {
+					fmt.Println("ERROR:", err)
+				}
+
+				awsManager.CleanS3Instances(assumedRoleClient)
+				awsManager.CleanEc2Instances(assumedRoleClient)
 			}
 
-			awsManager.CleanS3Instances(assumedRoleClient)
-			awsManager.CleanEc2Instances(assumedRoleClient)
 		}
 
 	}
