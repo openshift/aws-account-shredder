@@ -1,6 +1,7 @@
 package awsManager
 
 import (
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -23,8 +24,13 @@ func ListS3InstancesForDeletion(client clientpkg.Client) []*string {
 }
 
 // this deletes the S3 buckets
-func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string) {
+// successful execution returns nil. Unsuccessful execution or errors occured, would return an error
+func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string) error {
 
+	if s3BucketsToBeDeleted == nil {
+		return nil
+	}
+	var s3BucketsNotDeleted []*string
 	for _, bucket := range s3BucketsToBeDeleted {
 
 		// need to empty the bucket before the bucket can be deleted
@@ -39,16 +45,27 @@ func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string) {
 			if err, ok := err.(awserr.Error); ok {
 				switch err.Code() {
 				default:
-					fmt.Println(err.Error())
+					fmt.Println("Bucket ", bucket)
+					fmt.Print("Error", err)
+					s3BucketsNotDeleted = append(s3BucketsNotDeleted, bucket)
 				}
 			} else {
-				fmt.Println(err.Error())
+				fmt.Println("Bucket ", bucket)
+				fmt.Print("Error", err)
+				s3BucketsNotDeleted = append(s3BucketsNotDeleted, bucket)
 			}
 		}
 	}
+
+	if s3BucketsNotDeleted != nil {
+		return errors.New("ERROR")
+	}
+
+	return nil
 }
 
 func CleanS3Instances(client clientpkg.Client) {
 	s3InstancesToBeDeleted := ListS3InstancesForDeletion(client)
+	fmt.Println(s3InstancesToBeDeleted)
 	DeleteS3Buckets(client, s3InstancesToBeDeleted)
 }

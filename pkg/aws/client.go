@@ -6,8 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/organizations"
-	"github.com/aws/aws-sdk-go/service/organizations/organizationsiface"
+
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
@@ -15,48 +14,31 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 )
 
+//go:generate mockgen -source=./client.go -destination=../mock/client_generated.go -package=mock
+
 // Client is a wrapper object for actual AWS SDK clients to allow for easier testing.
 type Client interface {
 	//EC2
-	RunInstances(*ec2.RunInstancesInput) (*ec2.Reservation, error)
+
 	DescribeInstanceStatus(*ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error)
 	TerminateInstances(*ec2.TerminateInstancesInput) (*ec2.TerminateInstancesOutput, error)
-	DescribeVolumes(*ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error)
 	DeleteVolume(*ec2.DeleteVolumeInput) (*ec2.DeleteVolumeOutput, error)
-	DescribeSnapshots(*ec2.DescribeSnapshotsInput) (*ec2.DescribeSnapshotsOutput, error)
-	DeleteSnapshot(*ec2.DeleteSnapshotInput) (*ec2.DeleteSnapshotOutput, error)
 	DescribeInstances(*ec2.DescribeInstancesInput) (*ec2.DescribeInstancesOutput, error)
 
 	//STS
 	AssumeRole(*sts.AssumeRoleInput) (*sts.AssumeRoleOutput, error)
 	GetCallerIdentity(*sts.GetCallerIdentityInput) (*sts.GetCallerIdentityOutput, error)
-	GetFederationToken(*sts.GetFederationTokenInput) (*sts.GetFederationTokenOutput, error)
 
 	// S3
 	ListBuckets(*s3.ListBucketsInput) (*s3.ListBucketsOutput, error)
 	DeleteBucket(*s3.DeleteBucketInput) (*s3.DeleteBucketOutput, error)
 	BatchDeleteBucketObjects(bucketName *string) error
-	ListObjectsV2(*s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error)
-
-	//Organizations
-	ListAccounts(*organizations.ListAccountsInput) (*organizations.ListAccountsOutput, error)
-	CreateAccount(*organizations.CreateAccountInput) (*organizations.CreateAccountOutput, error)
-	DescribeCreateAccountStatus(*organizations.DescribeCreateAccountStatusInput) (*organizations.DescribeCreateAccountStatusOutput, error)
-	MoveAccount(*organizations.MoveAccountInput) (*organizations.MoveAccountOutput, error)
-	CreateOrganizationalUnit(*organizations.CreateOrganizationalUnitInput) (*organizations.CreateOrganizationalUnitOutput, error)
-	ListOrganizationalUnitsForParent(*organizations.ListOrganizationalUnitsForParentInput) (*organizations.ListOrganizationalUnitsForParentOutput, error)
-	ListChildren(*organizations.ListChildrenInput) (*organizations.ListChildrenOutput, error)
 }
 
 type awsClient struct {
 	ec2Client ec2iface.EC2API
 	stsClient stsiface.STSAPI
-	orgClient organizationsiface.OrganizationsAPI
 	s3Client  s3iface.S3API
-}
-
-func (c *awsClient) RunInstances(input *ec2.RunInstancesInput) (*ec2.Reservation, error) {
-	return c.ec2Client.RunInstances(input)
 }
 
 func (c *awsClient) DescribeInstanceStatus(input *ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error) {
@@ -67,20 +49,8 @@ func (c *awsClient) TerminateInstances(input *ec2.TerminateInstancesInput) (*ec2
 	return c.ec2Client.TerminateInstances(input)
 }
 
-func (c *awsClient) DescribeVolumes(input *ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error) {
-	return c.ec2Client.DescribeVolumes(input)
-}
-
 func (c *awsClient) DeleteVolume(input *ec2.DeleteVolumeInput) (*ec2.DeleteVolumeOutput, error) {
 	return c.ec2Client.DeleteVolume(input)
-}
-
-func (c *awsClient) DescribeSnapshots(input *ec2.DescribeSnapshotsInput) (*ec2.DescribeSnapshotsOutput, error) {
-	return c.ec2Client.DescribeSnapshots(input)
-}
-
-func (c *awsClient) DeleteSnapshot(input *ec2.DeleteSnapshotInput) (*ec2.DeleteSnapshotOutput, error) {
-	return c.ec2Client.DeleteSnapshot(input)
 }
 
 func (c *awsClient) DescribeInstances(input *ec2.DescribeInstancesInput) (*ec2.DescribeInstancesOutput, error) {
@@ -93,42 +63,6 @@ func (c *awsClient) AssumeRole(input *sts.AssumeRoleInput) (*sts.AssumeRoleOutpu
 
 func (c *awsClient) GetCallerIdentity(input *sts.GetCallerIdentityInput) (*sts.GetCallerIdentityOutput, error) {
 	return c.stsClient.GetCallerIdentity(input)
-}
-
-func (c *awsClient) GetFederationToken(input *sts.GetFederationTokenInput) (*sts.GetFederationTokenOutput, error) {
-	GetFederationTokenOutput, err := c.stsClient.GetFederationToken(input)
-	if GetFederationTokenOutput != nil {
-		return GetFederationTokenOutput, err
-	}
-	return &sts.GetFederationTokenOutput{}, err
-}
-
-func (c *awsClient) ListAccounts(input *organizations.ListAccountsInput) (*organizations.ListAccountsOutput, error) {
-	return c.orgClient.ListAccounts(input)
-}
-
-func (c *awsClient) CreateAccount(input *organizations.CreateAccountInput) (*organizations.CreateAccountOutput, error) {
-	return c.orgClient.CreateAccount(input)
-}
-
-func (c *awsClient) DescribeCreateAccountStatus(input *organizations.DescribeCreateAccountStatusInput) (*organizations.DescribeCreateAccountStatusOutput, error) {
-	return c.orgClient.DescribeCreateAccountStatus(input)
-}
-
-func (c *awsClient) MoveAccount(input *organizations.MoveAccountInput) (*organizations.MoveAccountOutput, error) {
-	return c.orgClient.MoveAccount(input)
-}
-
-func (c *awsClient) CreateOrganizationalUnit(input *organizations.CreateOrganizationalUnitInput) (*organizations.CreateOrganizationalUnitOutput, error) {
-	return c.orgClient.CreateOrganizationalUnit(input)
-}
-
-func (c *awsClient) ListOrganizationalUnitsForParent(input *organizations.ListOrganizationalUnitsForParentInput) (*organizations.ListOrganizationalUnitsForParentOutput, error) {
-	return c.orgClient.ListOrganizationalUnitsForParent(input)
-}
-
-func (c *awsClient) ListChildren(input *organizations.ListChildrenInput) (*organizations.ListChildrenOutput, error) {
-	return c.orgClient.ListChildren(input)
 }
 
 func (c *awsClient) ListBuckets(input *s3.ListBucketsInput) (*s3.ListBucketsOutput, error) {
@@ -167,7 +101,6 @@ func NewClient(awsAccessID, awsAccessSecret, token, region string) (Client, erro
 	return &awsClient{
 		ec2Client: ec2.New(s),
 		stsClient: sts.New(s),
-		orgClient: organizations.New(s),
 		s3Client:  s3.New(s),
 	}, nil
 }

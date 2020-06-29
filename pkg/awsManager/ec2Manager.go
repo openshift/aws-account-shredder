@@ -1,6 +1,7 @@
 package awsManager
 
 import (
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -56,11 +57,10 @@ func ListEc2InstancesForDeletion(client clientpkg.Client) []*string {
 }
 
 // this takes all the instances from insancesToBeDeleted  ( one by one ) and deletes them
-func DeleteEc2Instance(client clientpkg.Client, EC2InstancesToBeDeleted []*string) {
+func DeleteEc2Instance(client clientpkg.Client, EC2InstancesToBeDeleted []*string) error {
 
 	if EC2InstancesToBeDeleted == nil {
-		fmt.Println("inside the if condition . it Hits ")
-		return
+		return nil
 	}
 
 	_, err := client.TerminateInstances(&ec2.TerminateInstancesInput{InstanceIds: EC2InstancesToBeDeleted})
@@ -68,12 +68,14 @@ func DeleteEc2Instance(client clientpkg.Client, EC2InstancesToBeDeleted []*strin
 		if err, ok := err.(awserr.Error); ok {
 			switch err.Code() {
 			default:
-				fmt.Println(err.Error())
+				fmt.Println(err)
 			}
 		} else {
-			fmt.Println(err.Error())
+			fmt.Println(err)
 		}
+		return errors.New("Error")
 	}
+	return nil
 }
 
 func CleanEc2Instances(client clientpkg.Client) {
