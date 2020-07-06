@@ -3,18 +3,21 @@ kind: Deployment
 metadata:
   name: aws-account-shredder
   labels:
-    app: aws-account-shredder
+    name: aws-account-shredder
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: aws-account-shredder
+      name: aws-account-shredder
   template:
     metadata:
       labels:
-        app: aws-account-shredder
+        name: aws-account-shredder
     spec:
       serviceAccountName: aws-account-shredder
       containers:
-      - name: aws-account-operator
-        image: quay.io/agautam/aws-account-shredder:latest
+        - name: aws-account-shredder
+          image: quay.io/agautam/aws-account-shredder:latest
+          env:
+            - name : OPERATOR_NAME
+              value: "aws-account-shredder"
