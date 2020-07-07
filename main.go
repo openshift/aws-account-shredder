@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sts"
+	routev1 "github.com/openshift/api/route/v1"
 	"github.com/openshift/aws-account-operator/pkg/apis/aws/v1alpha1"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
 	"github.com/openshift/aws-account-shredder/pkg/awsManager"
 	"github.com/openshift/aws-account-shredder/pkg/awsv1alpha1"
-	k8sWrapper "github.com/openshift/aws-account-shredder/pkg/k8sWrapper"
+	"github.com/openshift/aws-account-shredder/pkg/k8sWrapper"
+	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
+	"github.com/openshift/operator-custom-metrics/pkg/metrics"
 	clientGoScheme "k8s.io/client-go/kubernetes/scheme"
 	kubeRest "k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -17,6 +20,8 @@ import (
 
 const (
 	sessionName = "awsAccountShredder"
+	metricsPort = "8080"
+	metricsPath = "/metrics"
 )
 
 var (
@@ -32,9 +37,29 @@ func main() {
 
 	// creating a client for reading the AccountID
 	cli, err := client.New(config, client.Options{})
+	if err != nil {
+		fmt.Println("ERROR:", err)
+	}
 
 	//integrating the account CRD to this project
 	v1alpha1.AddToScheme(clientGoScheme.Scheme)
+
+	if err := routev1.AddToScheme(clientGoScheme.Scheme); err != nil {
+		fmt.Println("ERROR: ", err)
+	}
+
+	//Create localMetrics endpoint and register localMetrics
+	metricsServer := metrics.NewBuilder().WithPort(metricsPort).WithPath(metricsPath).
+		WithCollectors(localMetrics.MetricsList).
+		WithRoute().
+		WithServiceName("aws-account-shredder").
+		GetConfig()
+
+	// Configure localMetrics if it errors log the error but continue
+	if err := metrics.ConfigureMetrics(context.TODO(), *metricsServer); err != nil {
+		fmt.Println(err, "Failed to configure Metrics")
+
+	}
 
 	//reading the aws-account-shredder-credentials secret
 	accessKeyID, secretAccessKey, err := k8sWrapper.GetAWSAccountCredentials(context.TODO(), cli)
@@ -47,7 +72,6 @@ func main() {
 	if err != nil {
 		fmt.Println("ERROR:", err)
 	}
-
 	for {
 		// reading the account ID to be cleared
 		accountIDlist, err := awsv1alpha1.GetAccountIDsToReset(context.TODO(), cli)
@@ -82,8 +106,6 @@ func main() {
 				awsManager.CleanS3Instances(assumedRoleClient)
 				awsManager.CleanEc2Instances(assumedRoleClient)
 			}
-
 		}
-
 	}
 }
