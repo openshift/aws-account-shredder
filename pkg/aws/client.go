@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/aws/aws-sdk-go/service/route53/route53iface"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
@@ -33,12 +35,19 @@ type Client interface {
 	ListBuckets(*s3.ListBucketsInput) (*s3.ListBucketsOutput, error)
 	DeleteBucket(*s3.DeleteBucketInput) (*s3.DeleteBucketOutput, error)
 	BatchDeleteBucketObjects(bucketName *string) error
+
+	// Route53
+	ListHostedZones(*route53.ListHostedZonesInput) (*route53.ListHostedZonesOutput, error)
+	DeleteHostedZone(*route53.DeleteHostedZoneInput) (*route53.DeleteHostedZoneOutput, error)
+	ListResourceRecordSets(*route53.ListResourceRecordSetsInput) (*route53.ListResourceRecordSetsOutput, error)
+	ChangeResourceRecordSets(*route53.ChangeResourceRecordSetsInput) (*route53.ChangeResourceRecordSetsOutput, error)
 }
 
 type awsClient struct {
-	ec2Client ec2iface.EC2API
-	stsClient stsiface.STSAPI
-	s3Client  s3iface.S3API
+	ec2Client     ec2iface.EC2API
+	stsClient     stsiface.STSAPI
+	s3Client      s3iface.S3API
+	route53client route53iface.Route53API
 }
 
 func (c *awsClient) DescribeInstanceStatus(input *ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error) {
@@ -87,6 +96,22 @@ func (c *awsClient) BatchDeleteBucketObjects(bucketName *string) error {
 	return s3manager.NewBatchDeleteWithClient(c.s3Client).Delete(aws.BackgroundContext(), iter)
 }
 
+func (c *awsClient) ListHostedZones(input *route53.ListHostedZonesInput) (*route53.ListHostedZonesOutput, error) {
+	return c.route53client.ListHostedZones(input)
+}
+
+func (c *awsClient) DeleteHostedZone(input *route53.DeleteHostedZoneInput) (*route53.DeleteHostedZoneOutput, error) {
+	return c.route53client.DeleteHostedZone(input)
+}
+
+func (c *awsClient) ListResourceRecordSets(input *route53.ListResourceRecordSetsInput) (*route53.ListResourceRecordSetsOutput, error) {
+	return c.route53client.ListResourceRecordSets(input)
+}
+
+func (c *awsClient) ChangeResourceRecordSets(input *route53.ChangeResourceRecordSetsInput) (*route53.ChangeResourceRecordSetsOutput, error) {
+	return c.route53client.ChangeResourceRecordSets(input)
+}
+
 // NewClient creates our client wrapper object for the actual AWS clients we use.
 func NewClient(awsAccessID, awsAccessSecret, token, region string) (Client, error) {
 	awsConfig := &aws.Config{Region: aws.String(region)}
@@ -99,8 +124,9 @@ func NewClient(awsAccessID, awsAccessSecret, token, region string) (Client, erro
 	}
 
 	return &awsClient{
-		ec2Client: ec2.New(s),
-		stsClient: sts.New(s),
-		s3Client:  s3.New(s),
+		ec2Client:     ec2.New(s),
+		stsClient:     sts.New(s),
+		s3Client:      s3.New(s),
+		route53client: route53.New(s),
 	}, nil
 }
