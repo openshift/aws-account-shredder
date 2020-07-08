@@ -7,30 +7,6 @@ import (
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
 )
 
-func ListRoute53ForDeletion(client clientpkg.Client) []*string {
-
-	var route53InstancesToBedeleted []*string
-	route53HostedZoneOuput, err := client.ListHostedZones(&route53.ListHostedZonesInput{})
-	if err != nil {
-		fmt.Println("ERROR:")
-		return nil
-	} else {
-		fmt.Println("ROTE53:")
-		fmt.Println(route53HostedZoneOuput)
-	}
-	for _, hostedZone := range route53HostedZoneOuput.HostedZones {
-		route53InstancesToBedeleted = append(route53InstancesToBedeleted, hostedZone.Id)
-
-	}
-	return route53InstancesToBedeleted
-}
-
-func ClearRoute53Resources(client clientpkg.Client) {
-	route53InstancesToBedeleted := ListRoute53ForDeletion(client)
-	fmt.Println("ROUTE 53 to be deleted")
-	fmt.Print(route53InstancesToBedeleted)
-}
-
 func CleanUpAwsRoute53(client clientpkg.Client) error {
 
 	var nextZoneMarker *string
@@ -52,7 +28,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 			for {
 				recordSet, listRecordsError := client.ListResourceRecordSets(&route53.ListResourceRecordSetsInput{HostedZoneId: zone.Id, StartRecordName: nextRecordName})
 				if listRecordsError != nil {
-					fmt.Println("Failed to list Record sets for hosted zone %s", *zone.Name)
+					fmt.Println("Failed to list Record sets for hosted zone ", *zone.Name)
 					return listRecordsError
 				}
 
@@ -72,7 +48,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 				if changeBatch.Changes != nil {
 					_, changeErr := client.ChangeResourceRecordSets(&route53.ChangeResourceRecordSetsInput{HostedZoneId: zone.Id, ChangeBatch: changeBatch})
 					if changeErr != nil {
-						fmt.Println("Failed to delete record sets for hosted zone %s", *zone.Name)
+						fmt.Println("Failed to delete record sets for hosted zone ", *zone.Name)
 						return changeErr
 					}
 				}
