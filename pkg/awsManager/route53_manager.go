@@ -7,6 +7,8 @@ import (
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
 )
 
+// source : https://github.com/openshift/aws-account-operator/blob/master/pkg/controller/accountclaim/reuse.go#L321
+
 func CleanUpAwsRoute53(client clientpkg.Client) error {
 
 	var nextZoneMarker *string
