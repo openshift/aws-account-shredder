@@ -6,6 +6,8 @@ package mock
 
 import (
 	ec2 "github.com/aws/aws-sdk-go/service/ec2"
+	elb "github.com/aws/aws-sdk-go/service/elb"
+	elbv2 "github.com/aws/aws-sdk-go/service/elbv2"
 	route53 "github.com/aws/aws-sdk-go/service/route53"
 	s3 "github.com/aws/aws-sdk-go/service/s3"
 	sts "github.com/aws/aws-sdk-go/service/sts"
@@ -94,6 +96,471 @@ func (m *MockClient) DescribeInstances(arg0 *ec2.DescribeInstancesInput) (*ec2.D
 func (mr *MockClientMockRecorder) DescribeInstances(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeInstances", reflect.TypeOf((*MockClient)(nil).DescribeInstances), arg0)
+}
+
+// DescribeVpcs mocks base method
+func (m *MockClient) DescribeVpcs(arg0 *ec2.DescribeVpcsInput) (*ec2.DescribeVpcsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeVpcs", arg0)
+	ret0, _ := ret[0].(*ec2.DescribeVpcsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeVpcs indicates an expected call of DescribeVpcs
+func (mr *MockClientMockRecorder) DescribeVpcs(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeVpcs", reflect.TypeOf((*MockClient)(nil).DescribeVpcs), arg0)
+}
+
+// DeleteVpc mocks base method
+func (m *MockClient) DeleteVpc(input *ec2.DeleteVpcInput) (*ec2.DeleteVpcOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteVpc", input)
+	ret0, _ := ret[0].(*ec2.DeleteVpcOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteVpc indicates an expected call of DeleteVpc
+func (mr *MockClientMockRecorder) DeleteVpc(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteVpc", reflect.TypeOf((*MockClient)(nil).DeleteVpc), input)
+}
+
+// DescribeSubnets mocks base method
+func (m *MockClient) DescribeSubnets(input *ec2.DescribeSubnetsInput) (*ec2.DescribeSubnetsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeSubnets", input)
+	ret0, _ := ret[0].(*ec2.DescribeSubnetsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeSubnets indicates an expected call of DescribeSubnets
+func (mr *MockClientMockRecorder) DescribeSubnets(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeSubnets", reflect.TypeOf((*MockClient)(nil).DescribeSubnets), input)
+}
+
+// DeleteSubnet mocks base method
+func (m *MockClient) DeleteSubnet(input *ec2.DeleteSubnetInput) (*ec2.DeleteSubnetOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSubnet", input)
+	ret0, _ := ret[0].(*ec2.DeleteSubnetOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteSubnet indicates an expected call of DeleteSubnet
+func (mr *MockClientMockRecorder) DeleteSubnet(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSubnet", reflect.TypeOf((*MockClient)(nil).DeleteSubnet), input)
+}
+
+// DescribeInternetGateways mocks base method
+func (m *MockClient) DescribeInternetGateways(input *ec2.DescribeInternetGatewaysInput) (*ec2.DescribeInternetGatewaysOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeInternetGateways", input)
+	ret0, _ := ret[0].(*ec2.DescribeInternetGatewaysOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeInternetGateways indicates an expected call of DescribeInternetGateways
+func (mr *MockClientMockRecorder) DescribeInternetGateways(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeInternetGateways", reflect.TypeOf((*MockClient)(nil).DescribeInternetGateways), input)
+}
+
+// DetachInternetGateway mocks base method
+func (m *MockClient) DetachInternetGateway(input *ec2.DetachInternetGatewayInput) (*ec2.DetachInternetGatewayOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DetachInternetGateway", input)
+	ret0, _ := ret[0].(*ec2.DetachInternetGatewayOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DetachInternetGateway indicates an expected call of DetachInternetGateway
+func (mr *MockClientMockRecorder) DetachInternetGateway(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DetachInternetGateway", reflect.TypeOf((*MockClient)(nil).DetachInternetGateway), input)
+}
+
+// DescribeNetworkInterfaces mocks base method
+func (m *MockClient) DescribeNetworkInterfaces(input *ec2.DescribeNetworkInterfacesInput) (*ec2.DescribeNetworkInterfacesOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeNetworkInterfaces", input)
+	ret0, _ := ret[0].(*ec2.DescribeNetworkInterfacesOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeNetworkInterfaces indicates an expected call of DescribeNetworkInterfaces
+func (mr *MockClientMockRecorder) DescribeNetworkInterfaces(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeNetworkInterfaces", reflect.TypeOf((*MockClient)(nil).DescribeNetworkInterfaces), input)
+}
+
+// DetachNetworkInterface mocks base method
+func (m *MockClient) DetachNetworkInterface(input *ec2.DetachNetworkInterfaceInput) (*ec2.DetachNetworkInterfaceOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DetachNetworkInterface", input)
+	ret0, _ := ret[0].(*ec2.DetachNetworkInterfaceOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DetachNetworkInterface indicates an expected call of DetachNetworkInterface
+func (mr *MockClientMockRecorder) DetachNetworkInterface(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DetachNetworkInterface", reflect.TypeOf((*MockClient)(nil).DetachNetworkInterface), input)
+}
+
+// DeleteNetworkInterface mocks base method
+func (m *MockClient) DeleteNetworkInterface(input *ec2.DeleteNetworkInterfaceInput) (*ec2.DeleteNetworkInterfaceOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteNetworkInterface", input)
+	ret0, _ := ret[0].(*ec2.DeleteNetworkInterfaceOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteNetworkInterface indicates an expected call of DeleteNetworkInterface
+func (mr *MockClientMockRecorder) DeleteNetworkInterface(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteNetworkInterface", reflect.TypeOf((*MockClient)(nil).DeleteNetworkInterface), input)
+}
+
+// DescribeNatGateways mocks base method
+func (m *MockClient) DescribeNatGateways(input *ec2.DescribeNatGatewaysInput) (*ec2.DescribeNatGatewaysOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeNatGateways", input)
+	ret0, _ := ret[0].(*ec2.DescribeNatGatewaysOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeNatGateways indicates an expected call of DescribeNatGateways
+func (mr *MockClientMockRecorder) DescribeNatGateways(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeNatGateways", reflect.TypeOf((*MockClient)(nil).DescribeNatGateways), input)
+}
+
+// DeleteNatGateway mocks base method
+func (m *MockClient) DeleteNatGateway(input *ec2.DeleteNatGatewayInput) (*ec2.DeleteNatGatewayOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteNatGateway", input)
+	ret0, _ := ret[0].(*ec2.DeleteNatGatewayOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteNatGateway indicates an expected call of DeleteNatGateway
+func (mr *MockClientMockRecorder) DeleteNatGateway(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteNatGateway", reflect.TypeOf((*MockClient)(nil).DeleteNatGateway), input)
+}
+
+// DescribeRouteTables mocks base method
+func (m *MockClient) DescribeRouteTables(input *ec2.DescribeRouteTablesInput) (*ec2.DescribeRouteTablesOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeRouteTables", input)
+	ret0, _ := ret[0].(*ec2.DescribeRouteTablesOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeRouteTables indicates an expected call of DescribeRouteTables
+func (mr *MockClientMockRecorder) DescribeRouteTables(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeRouteTables", reflect.TypeOf((*MockClient)(nil).DescribeRouteTables), input)
+}
+
+// DeleteRouteTable mocks base method
+func (m *MockClient) DeleteRouteTable(input *ec2.DeleteRouteTableInput) (*ec2.DeleteRouteTableOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRouteTable", input)
+	ret0, _ := ret[0].(*ec2.DeleteRouteTableOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteRouteTable indicates an expected call of DeleteRouteTable
+func (mr *MockClientMockRecorder) DeleteRouteTable(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRouteTable", reflect.TypeOf((*MockClient)(nil).DeleteRouteTable), input)
+}
+
+// DescribeNetworkAcls mocks base method
+func (m *MockClient) DescribeNetworkAcls(input *ec2.DescribeNetworkAclsInput) (*ec2.DescribeNetworkAclsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeNetworkAcls", input)
+	ret0, _ := ret[0].(*ec2.DescribeNetworkAclsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeNetworkAcls indicates an expected call of DescribeNetworkAcls
+func (mr *MockClientMockRecorder) DescribeNetworkAcls(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeNetworkAcls", reflect.TypeOf((*MockClient)(nil).DescribeNetworkAcls), input)
+}
+
+// DeleteNetworkAcl mocks base method
+func (m *MockClient) DeleteNetworkAcl(input *ec2.DeleteNetworkAclInput) (*ec2.DeleteNetworkAclOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteNetworkAcl", input)
+	ret0, _ := ret[0].(*ec2.DeleteNetworkAclOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteNetworkAcl indicates an expected call of DeleteNetworkAcl
+func (mr *MockClientMockRecorder) DeleteNetworkAcl(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteNetworkAcl", reflect.TypeOf((*MockClient)(nil).DeleteNetworkAcl), input)
+}
+
+// DescribeSecurityGroups mocks base method
+func (m *MockClient) DescribeSecurityGroups(input *ec2.DescribeSecurityGroupsInput) (*ec2.DescribeSecurityGroupsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeSecurityGroups", input)
+	ret0, _ := ret[0].(*ec2.DescribeSecurityGroupsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeSecurityGroups indicates an expected call of DescribeSecurityGroups
+func (mr *MockClientMockRecorder) DescribeSecurityGroups(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeSecurityGroups", reflect.TypeOf((*MockClient)(nil).DescribeSecurityGroups), input)
+}
+
+// DeleteSecurityGroup mocks base method
+func (m *MockClient) DeleteSecurityGroup(input *ec2.DeleteSecurityGroupInput) (*ec2.DeleteSecurityGroupOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSecurityGroup", input)
+	ret0, _ := ret[0].(*ec2.DeleteSecurityGroupOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteSecurityGroup indicates an expected call of DeleteSecurityGroup
+func (mr *MockClientMockRecorder) DeleteSecurityGroup(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecurityGroup", reflect.TypeOf((*MockClient)(nil).DeleteSecurityGroup), input)
+}
+
+// DeleteInternetGateway mocks base method
+func (m *MockClient) DeleteInternetGateway(input *ec2.DeleteInternetGatewayInput) (*ec2.DeleteInternetGatewayOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteInternetGateway", input)
+	ret0, _ := ret[0].(*ec2.DeleteInternetGatewayOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteInternetGateway indicates an expected call of DeleteInternetGateway
+func (mr *MockClientMockRecorder) DeleteInternetGateway(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteInternetGateway", reflect.TypeOf((*MockClient)(nil).DeleteInternetGateway), input)
+}
+
+// DeleteVpcEndpoints mocks base method
+func (m *MockClient) DeleteVpcEndpoints(input *ec2.DeleteVpcEndpointsInput) (*ec2.DeleteVpcEndpointsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteVpcEndpoints", input)
+	ret0, _ := ret[0].(*ec2.DeleteVpcEndpointsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteVpcEndpoints indicates an expected call of DeleteVpcEndpoints
+func (mr *MockClientMockRecorder) DeleteVpcEndpoints(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteVpcEndpoints", reflect.TypeOf((*MockClient)(nil).DeleteVpcEndpoints), input)
+}
+
+// DescribeVpcEndpoints mocks base method
+func (m *MockClient) DescribeVpcEndpoints(input *ec2.DescribeVpcEndpointsInput) (*ec2.DescribeVpcEndpointsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeVpcEndpoints", input)
+	ret0, _ := ret[0].(*ec2.DescribeVpcEndpointsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeVpcEndpoints indicates an expected call of DescribeVpcEndpoints
+func (mr *MockClientMockRecorder) DescribeVpcEndpoints(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeVpcEndpoints", reflect.TypeOf((*MockClient)(nil).DescribeVpcEndpoints), input)
+}
+
+// DisassociateRouteTable mocks base method
+func (m *MockClient) DisassociateRouteTable(input *ec2.DisassociateRouteTableInput) (*ec2.DisassociateRouteTableOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DisassociateRouteTable", input)
+	ret0, _ := ret[0].(*ec2.DisassociateRouteTableOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DisassociateRouteTable indicates an expected call of DisassociateRouteTable
+func (mr *MockClientMockRecorder) DisassociateRouteTable(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisassociateRouteTable", reflect.TypeOf((*MockClient)(nil).DisassociateRouteTable), input)
+}
+
+// RevokeSecurityGroupIngress mocks base method
+func (m *MockClient) RevokeSecurityGroupIngress(input *ec2.RevokeSecurityGroupIngressInput) (*ec2.RevokeSecurityGroupIngressOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeSecurityGroupIngress", input)
+	ret0, _ := ret[0].(*ec2.RevokeSecurityGroupIngressOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RevokeSecurityGroupIngress indicates an expected call of RevokeSecurityGroupIngress
+func (mr *MockClientMockRecorder) RevokeSecurityGroupIngress(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeSecurityGroupIngress", reflect.TypeOf((*MockClient)(nil).RevokeSecurityGroupIngress), input)
+}
+
+// DescribeVpnConnections mocks base method
+func (m *MockClient) DescribeVpnConnections(input *ec2.DescribeVpnConnectionsInput) (*ec2.DescribeVpnConnectionsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeVpnConnections", input)
+	ret0, _ := ret[0].(*ec2.DescribeVpnConnectionsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeVpnConnections indicates an expected call of DescribeVpnConnections
+func (mr *MockClientMockRecorder) DescribeVpnConnections(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeVpnConnections", reflect.TypeOf((*MockClient)(nil).DescribeVpnConnections), input)
+}
+
+// DescribeVpnGateways mocks base method
+func (m *MockClient) DescribeVpnGateways(input *ec2.DescribeVpnGatewaysInput) (*ec2.DescribeVpnGatewaysOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeVpnGateways", input)
+	ret0, _ := ret[0].(*ec2.DescribeVpnGatewaysOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeVpnGateways indicates an expected call of DescribeVpnGateways
+func (mr *MockClientMockRecorder) DescribeVpnGateways(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeVpnGateways", reflect.TypeOf((*MockClient)(nil).DescribeVpnGateways), input)
+}
+
+// DeleteVpnConnection mocks base method
+func (m *MockClient) DeleteVpnConnection(input *ec2.DeleteVpnConnectionInput) (*ec2.DeleteVpnConnectionOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteVpnConnection", input)
+	ret0, _ := ret[0].(*ec2.DeleteVpnConnectionOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteVpnConnection indicates an expected call of DeleteVpnConnection
+func (mr *MockClientMockRecorder) DeleteVpnConnection(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteVpnConnection", reflect.TypeOf((*MockClient)(nil).DeleteVpnConnection), input)
+}
+
+// DeleteVpnGateway mocks base method
+func (m *MockClient) DeleteVpnGateway(input *ec2.DeleteVpnGatewayInput) (*ec2.DeleteVpnGatewayOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteVpnGateway", input)
+	ret0, _ := ret[0].(*ec2.DeleteVpnGatewayOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteVpnGateway indicates an expected call of DeleteVpnGateway
+func (mr *MockClientMockRecorder) DeleteVpnGateway(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteVpnGateway", reflect.TypeOf((*MockClient)(nil).DeleteVpnGateway), input)
+}
+
+// DetachVpnGateway mocks base method
+func (m *MockClient) DetachVpnGateway(input *ec2.DetachVpnGatewayInput) (*ec2.DetachVpnGatewayOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DetachVpnGateway", input)
+	ret0, _ := ret[0].(*ec2.DetachVpnGatewayOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DetachVpnGateway indicates an expected call of DetachVpnGateway
+func (mr *MockClientMockRecorder) DetachVpnGateway(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DetachVpnGateway", reflect.TypeOf((*MockClient)(nil).DetachVpnGateway), input)
+}
+
+// DescribeLoadBalancers mocks base method
+func (m *MockClient) DescribeLoadBalancers(input *elb.DescribeLoadBalancersInput) (*elb.DescribeLoadBalancersOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeLoadBalancers", input)
+	ret0, _ := ret[0].(*elb.DescribeLoadBalancersOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeLoadBalancers indicates an expected call of DescribeLoadBalancers
+func (mr *MockClientMockRecorder) DescribeLoadBalancers(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeLoadBalancers", reflect.TypeOf((*MockClient)(nil).DescribeLoadBalancers), input)
+}
+
+// DeleteLoadBalancer mocks base method
+func (m *MockClient) DeleteLoadBalancer(input *elb.DeleteLoadBalancerInput) (*elb.DeleteLoadBalancerOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteLoadBalancer", input)
+	ret0, _ := ret[0].(*elb.DeleteLoadBalancerOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteLoadBalancer indicates an expected call of DeleteLoadBalancer
+func (mr *MockClientMockRecorder) DeleteLoadBalancer(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLoadBalancer", reflect.TypeOf((*MockClient)(nil).DeleteLoadBalancer), input)
+}
+
+// DescribeLoadBalancers2 mocks base method
+func (m *MockClient) DescribeLoadBalancers2(input *elbv2.DescribeLoadBalancersInput) (*elbv2.DescribeLoadBalancersOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeLoadBalancers2", input)
+	ret0, _ := ret[0].(*elbv2.DescribeLoadBalancersOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeLoadBalancers2 indicates an expected call of DescribeLoadBalancers2
+func (mr *MockClientMockRecorder) DescribeLoadBalancers2(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeLoadBalancers2", reflect.TypeOf((*MockClient)(nil).DescribeLoadBalancers2), input)
+}
+
+// DeleteLoadBalancer2 mocks base method
+func (m *MockClient) DeleteLoadBalancer2(input *elbv2.DeleteLoadBalancerInput) (*elbv2.DeleteLoadBalancerOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteLoadBalancer2", input)
+	ret0, _ := ret[0].(*elbv2.DeleteLoadBalancerOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteLoadBalancer2 indicates an expected call of DeleteLoadBalancer2
+func (mr *MockClientMockRecorder) DeleteLoadBalancer2(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLoadBalancer2", reflect.TypeOf((*MockClient)(nil).DeleteLoadBalancer2), input)
 }
 
 // AssumeRole mocks base method
