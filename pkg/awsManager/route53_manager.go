@@ -1,6 +1,7 @@
 package awsManager
 
 import (
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -12,6 +13,7 @@ import (
 func CleanUpAwsRoute53(client clientpkg.Client) error {
 
 	var nextZoneMarker *string
+	var errFlag bool = false
 
 	// Paginate through hosted zones
 	for {
@@ -51,7 +53,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 					_, changeErr := client.ChangeResourceRecordSets(&route53.ChangeResourceRecordSetsInput{HostedZoneId: zone.Id, ChangeBatch: changeBatch})
 					if changeErr != nil {
 						fmt.Println("Failed to delete record sets for hosted zone ", *zone.Name)
-						return changeErr
+						errFlag = true
 					}
 				}
 
@@ -66,7 +68,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 			_, deleteError := client.DeleteHostedZone(&route53.DeleteHostedZoneInput{Id: zone.Id})
 			if deleteError != nil {
 				fmt.Println("ERROR:", err)
-				return deleteError
+				errFlag = true
 			}
 		}
 
@@ -77,6 +79,10 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 		}
 	}
 
-	fmt.Println("Route53 cleanup finished successfully")
-	return nil
+	if errFlag == true {
+		return errors.New("ERROR")
+	} else {
+		fmt.Println("Route53 cleanup finished successfully")
+		return nil
+	}
 }
