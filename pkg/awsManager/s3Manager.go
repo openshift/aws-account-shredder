@@ -37,6 +37,7 @@ func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string) er
 		batchDeleteError := client.BatchDeleteBucketObjects(bucket)
 		if batchDeleteError != nil {
 			fmt.Println(batchDeleteError)
+			fmt.Print("Could not empty bucket :", *bucket)
 		}
 
 		// Deleting the bucket
@@ -45,12 +46,12 @@ func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string) er
 			if err, ok := err.(awserr.Error); ok {
 				switch err.Code() {
 				default:
-					fmt.Println("Bucket ", bucket)
+					fmt.Println("could not delete bucket", *bucket)
 					fmt.Print("Error", err)
 					s3BucketsNotDeleted = append(s3BucketsNotDeleted, bucket)
 				}
 			} else {
-				fmt.Println("Bucket ", bucket)
+				fmt.Println("could not delete bucket ", *bucket)
 				fmt.Print("Error", err)
 				s3BucketsNotDeleted = append(s3BucketsNotDeleted, bucket)
 			}
