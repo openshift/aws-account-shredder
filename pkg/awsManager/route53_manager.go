@@ -21,6 +21,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 		hostedZonesOutput, err := client.ListHostedZones(&route53.ListHostedZonesInput{Marker: nextZoneMarker})
 		if err != nil {
 			fmt.Println("ERROR: ", err)
+			// have to return here, or else invalid pointer reference will occur
 			return err
 		}
 
@@ -33,7 +34,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 				recordSet, listRecordsError := client.ListResourceRecordSets(&route53.ListResourceRecordSetsInput{HostedZoneId: zone.Id, StartRecordName: nextRecordName})
 				if listRecordsError != nil {
 					fmt.Println("Failed to list Record sets for hosted zone ", *zone.Name)
-					return listRecordsError
+					errFlag = true
 				}
 
 				changeBatch := &route53.ChangeBatch{}
@@ -68,6 +69,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 			_, deleteError := client.DeleteHostedZone(&route53.DeleteHostedZoneInput{Id: zone.Id})
 			if deleteError != nil {
 				fmt.Println("ERROR:", err)
+				fmt.Println("ERROR: failed to delete HostedZone", zone.Id)
 				errFlag = true
 			}
 		}
