@@ -1,0 +1,6 @@
+IMAGE_REGISTRY?=quay.io
+IMAGE_REPOSITORY?=app-sre
+IMAGE_NAME?=aws-account-shredder
+
+VERSION_MAJOR?=0
+VERSION_MINOR?=1
