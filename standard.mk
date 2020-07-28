@@ -28,7 +28,7 @@ MAINPACKAGE=./
 GOENV=GOOS=linux GOARCH=amd64 CGO_ENABLED=0
 GOFLAGS=-gcflags="all=-trimpath=${GOPATH}" -asmflags="all=-trimpath=${GOPATH}"
 
-TESTTARGETS := $(shell go list -e ./... | egrep -v "/(vendor)/")
+
 # ex, -v
 TESTOPTS :=
 
@@ -40,12 +40,9 @@ default: gobuild
 clean:
 	rm -rf ./build/_output
 
-.PHONY: isclean
-isclean:
-	@(test "$(ALLOW_DIRTY_CHECKOUT)" != "false" || test 0 -eq $$(git status --porcelain | wc -l)) || (echo "Local git checkout is not clean, commit changes and try again." && exit 1)
 
 .PHONY: build
-build: isclean envtest
+build:
 	docker build . -f $(OPERATOR_DOCKERFILE) -t $(OPERATOR_IMAGE_URI)
 	docker tag $(OPERATOR_IMAGE_URI) $(OPERATOR_IMAGE_URI_LATEST)
 
@@ -55,21 +52,5 @@ push:
 	docker push $(OPERATOR_IMAGE_URI_LATEST)
 
 .PHONY: gobuild
-gobuild: gocheck gotest ## Build binary
+gobuild: gocheck gotest
 	${GOENV} go build ${GOFLAGS} -o ${BINFILE} ${MAINPACKAGE}
-
-.PHONY: envtest
-envtest:
-	@# test that the env target can be evaluated, required by osd-operators-registry
-	@eval $$($(MAKE) env --no-print-directory) || (echo 'Unable to evaulate output of `make env`.  This breaks osd-operators-registry.' && exit 1)
-
-.PHONY: test
-test: envtest gotest
-
-.PHONY: env
-.SILENT: env
-env: isclean
-	echo OPERATOR_NAME=$(OPERATOR_NAME)
-	echo OPERATOR_NAMESPACE=$(OPERATOR_NAMESPACE)
-	echo OPERATOR_VERSION=$(OPERATOR_VERSION)
-	echo OPERATOR_IMAGE_URI=$(OPERATOR_IMAGE_URI)
