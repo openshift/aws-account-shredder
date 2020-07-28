@@ -18,12 +18,11 @@ COMMIT_NUMBER=$(shell git rev-list `git rev-list --parents HEAD | egrep "^[a-f0-
 CURRENT_COMMIT=$(shell git rev-parse --short=8 HEAD)
 OPERATOR_VERSION=$(VERSION_MAJOR).$(VERSION_MINOR).$(COMMIT_NUMBER)-$(CURRENT_COMMIT)
 
-IMG?=$(IMAGE_REGISTRY)/$(IMAGE_REPOSITORY)/$(IMAGE_NAME):v$(OPERATOR_VERSION)
+IMG?=$(IMAGE_REGISTRY)/$(IMAGE_REPOSITORY)/$(IMAGE_NAME):latest
 OPERATOR_IMAGE_URI=${IMG}
 OPERATOR_IMAGE_URI_LATEST=$(IMAGE_REGISTRY)/$(IMAGE_REPOSITORY)/$(IMAGE_NAME):latest
-OPERATOR_DOCKERFILE ?=build/ci-operator/Dockerfile
+OPERATOR_DOCKERFILE ?=deploy/Dockerfile
 
-BINFILE=build/_output/bin/$(OPERATOR_NAME)
 MAINPACKAGE=./
 GOENV=GOOS=linux GOARCH=amd64 CGO_ENABLED=0
 GOFLAGS=-gcflags="all=-trimpath=${GOPATH}" -asmflags="all=-trimpath=${GOPATH}"
@@ -34,8 +33,6 @@ TESTOPTS :=
 
 ALLOW_DIRTY_CHECKOUT?=false
 
-default: gobuild
-
 .PHONY: clean
 clean:
 	rm -rf ./build/_output
@@ -43,8 +40,7 @@ clean:
 
 .PHONY: build
 build:
-	docker build . -f $(OPERATOR_DOCKERFILE) -t $(OPERATOR_IMAGE_URI)
-	docker tag $(OPERATOR_IMAGE_URI) $(OPERATOR_IMAGE_URI_LATEST)
+	docker build  -t $(OPERATOR_IMAGE_URI) . -f $(OPERATOR_DOCKERFILE)
 
 .PHONY: push
 push:
@@ -52,5 +48,5 @@ push:
 	docker push $(OPERATOR_IMAGE_URI_LATEST)
 
 .PHONY: gobuild
-gobuild: gocheck gotest
-	${GOENV} go build ${GOFLAGS} -o ${BINFILE} ${MAINPACKAGE}
+gobuild:
+	${GOENV} go build ${GOFLAGS} main.go

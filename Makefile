@@ -23,6 +23,3 @@ export GOPROXY=https://proxy.golang.org
 .PHONY: docker-build
 docker-build: build
 
-build:
-	$(GO) build ${GOFLAGS} main.go
-
