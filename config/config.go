@@ -1,6 +1,6 @@
 package config
 
 const (
-	AwsClientName      string = "aws-account-shredder"
-	AwsClientNamespace string = "aws-account-shredder"
+	ApplicationName      string = "aws-account-shredder"
+	ApplicationNamespace string = "aws-account-shredder"
 )
