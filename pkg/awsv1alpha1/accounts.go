@@ -3,6 +3,7 @@ package awsv1alpha1
 import (
 	"context"
 	"fmt"
+
 	awsv1alpha1 "github.com/openshift/aws-account-operator/pkg/apis/aws/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -21,7 +22,7 @@ func GetAccountIDsToReset(ctx context.Context, cli client.Client) ([]string, err
 
 	var accountID []string
 	for _, account := range accounts.Items {
-		if account.Spec.ClaimLink == "" && account.Status.State == "Failed" {
+		if account.Spec.ClaimLink == "" && account.Status.State == "Failed" && !account.Spec.BYOC {
 			accountID = append(accountID, account.Spec.AwsAccountID)
 		}
 
