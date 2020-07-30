@@ -503,6 +503,51 @@ func (mr *MockClientMockRecorder) DetachVpnGateway(input interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DetachVpnGateway", reflect.TypeOf((*MockClient)(nil).DetachVpnGateway), input)
 }
 
+// DescribeSnapshots mocks base method
+func (m *MockClient) DescribeSnapshots(input *ec2.DescribeSnapshotsInput) (*ec2.DescribeSnapshotsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeSnapshots", input)
+	ret0, _ := ret[0].(*ec2.DescribeSnapshotsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeSnapshots indicates an expected call of DescribeSnapshots
+func (mr *MockClientMockRecorder) DescribeSnapshots(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeSnapshots", reflect.TypeOf((*MockClient)(nil).DescribeSnapshots), input)
+}
+
+// DeleteSnapshot mocks base method
+func (m *MockClient) DeleteSnapshot(input *ec2.DeleteSnapshotInput) (*ec2.DeleteSnapshotOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSnapshot", input)
+	ret0, _ := ret[0].(*ec2.DeleteSnapshotOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteSnapshot indicates an expected call of DeleteSnapshot
+func (mr *MockClientMockRecorder) DeleteSnapshot(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSnapshot", reflect.TypeOf((*MockClient)(nil).DeleteSnapshot), input)
+}
+
+// DescribeVolumes mocks base method
+func (m *MockClient) DescribeVolumes(input *ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeVolumes", input)
+	ret0, _ := ret[0].(*ec2.DescribeVolumesOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeVolumes indicates an expected call of DescribeVolumes
+func (mr *MockClientMockRecorder) DescribeVolumes(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeVolumes", reflect.TypeOf((*MockClient)(nil).DescribeVolumes), input)
+}
+
 // DescribeLoadBalancers mocks base method
 func (m *MockClient) DescribeLoadBalancers(input *elb.DescribeLoadBalancersInput) (*elb.DescribeLoadBalancersOutput, error) {
 	m.ctrl.T.Helper()
