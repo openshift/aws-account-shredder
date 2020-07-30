@@ -78,9 +78,14 @@ func DeleteEc2Instance(client clientpkg.Client, EC2InstancesToBeDeleted []*strin
 	return nil
 }
 
-func CleanEc2Instances(client clientpkg.Client) {
+func CleanEc2Instances(client clientpkg.Client) error {
 
 	eC2InstancesToBeDeleted := ListEc2InstancesForDeletion(client)
-	DeleteEc2Instance(client, eC2InstancesToBeDeleted)
+	err := DeleteEc2Instance(client, eC2InstancesToBeDeleted)
+	if err != nil {
+		return err
+	}
+
+	return nil
 
 }

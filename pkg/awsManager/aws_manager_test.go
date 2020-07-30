@@ -2,6 +2,8 @@ package awsManager
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/elb"
+	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"testing"
@@ -153,6 +155,95 @@ func TestCleanUpAwsRoute53(t *testing.T) {
 			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
 
 			mockExecution := CleanUpAwsRoute53(mocks.mockAWSClient)
+
+			if mockExecution != nil && tc.errorExpected == false {
+				t.Errorf(tc.title, "Failed")
+			}
+		})
+	}
+}
+
+func TestDeleteVpcInstacnes(t *testing.T) {
+	testCases := []struct {
+		title           string
+		setupAWSMock    func(r *mock.MockClientMockRecorder)
+		listOfInstances []*string
+		errorExpected   bool
+	}{
+		{
+			title: "test 1 - All the resource clear up in the VPC",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DescribeVpcEndpoints(gomock.Any()).Return(&ec2.DescribeVpcEndpointsOutput{}, nil).AnyTimes()
+				r.DeleteVpcEndpoints(gomock.Any()).Return(&ec2.DeleteVpcEndpointsOutput{}, nil).AnyTimes()
+				r.DescribeLoadBalancers(gomock.Any()).Return(&elb.DescribeLoadBalancersOutput{}, nil).AnyTimes()
+				r.DeleteLoadBalancer(gomock.Any()).Return(&elb.DeleteLoadBalancerOutput{}, nil).AnyTimes()
+				r.DescribeLoadBalancers2(gomock.Any()).Return(&elbv2.DescribeLoadBalancersOutput{}, nil).AnyTimes()
+				r.DeleteLoadBalancer2(gomock.Any()).Return(&elbv2.DeleteLoadBalancerOutput{}, nil).AnyTimes()
+				r.DescribeNatGateways(gomock.Any()).Return(&ec2.DescribeNatGatewaysOutput{}, nil).AnyTimes()
+				r.DeleteNatGateway(gomock.Any()).Return(&ec2.DeleteNatGatewayOutput{}, nil).AnyTimes()
+				r.DescribeNetworkInterfaces(gomock.Any()).Return(&ec2.DescribeNetworkInterfacesOutput{}, nil).AnyTimes()
+				r.DetachNetworkInterface(gomock.Any()).Return(&ec2.DetachNetworkInterfaceOutput{}, nil).AnyTimes()
+				r.DeleteNetworkInterface(gomock.Any()).Return(&ec2.DeleteNetworkInterfaceOutput{}, nil).AnyTimes()
+				r.DescribeInternetGateways(gomock.Any()).Return(&ec2.DescribeInternetGatewaysOutput{}, nil).AnyTimes()
+				r.DeleteInternetGateway(gomock.Any()).Return(&ec2.DeleteInternetGatewayOutput{}, nil).AnyTimes()
+				r.DescribeVpnGateways(gomock.Any()).Return(&ec2.DescribeVpnGatewaysOutput{}, nil).AnyTimes()
+				r.DescribeNetworkAcls(gomock.Any()).Return(&ec2.DescribeNetworkAclsOutput{}, nil).AnyTimes()
+				r.DeleteNetworkAcl(gomock.Any()).Return(&ec2.DeleteNetworkAclOutput{}, nil).AnyTimes()
+				r.DescribeRouteTables(gomock.Any()).Return(&ec2.DescribeRouteTablesOutput{}, nil).AnyTimes()
+				r.DisassociateRouteTable(gomock.Any()).Return(&ec2.DisassociateRouteTableOutput{}, nil).AnyTimes()
+				r.DeleteRouteTable(gomock.Any()).Return(&ec2.DeleteRouteTableOutput{}, nil).AnyTimes()
+				r.DescribeSubnets(gomock.Any()).Return(&ec2.DescribeSubnetsOutput{}, nil).AnyTimes()
+				r.DeleteSubnet(gomock.Any()).Return(&ec2.DeleteSubnetOutput{}, nil).AnyTimes()
+				r.DescribeSecurityGroups(gomock.Any()).Return(&ec2.DescribeSecurityGroupsOutput{}, nil).AnyTimes()
+				r.RevokeSecurityGroupIngress(gomock.Any()).Return(&ec2.RevokeSecurityGroupIngressOutput{}, nil).AnyTimes()
+				r.DeleteSecurityGroup(gomock.Any()).Return(&ec2.DeleteSecurityGroupOutput{}, nil).AnyTimes()
+				r.DeleteVpc(gomock.Any()).Return(&ec2.DeleteVpcOutput{}, nil).AnyTimes()
+			},
+			listOfInstances: []*string{aws.String("abcd"), aws.String("abcd")},
+			errorExpected:   false,
+		}, {
+			title: "test 2 - All the resources dont clear up in the VPC",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DescribeVpcEndpoints(gomock.Any()).Return(&ec2.DescribeVpcEndpointsOutput{}, nil).AnyTimes()
+				r.DeleteVpcEndpoints(gomock.Any()).Return(&ec2.DeleteVpcEndpointsOutput{}, nil).AnyTimes()
+				r.DescribeLoadBalancers(gomock.Any()).Return(&elb.DescribeLoadBalancersOutput{}, nil).AnyTimes()
+				r.DeleteLoadBalancer(gomock.Any()).Return(&elb.DeleteLoadBalancerOutput{}, nil).AnyTimes()
+				r.DescribeLoadBalancers2(gomock.Any()).Return(&elbv2.DescribeLoadBalancersOutput{}, nil).AnyTimes()
+				r.DeleteLoadBalancer2(gomock.Any()).Return(&elbv2.DeleteLoadBalancerOutput{}, errors.New("Error")).AnyTimes()
+				r.DescribeNatGateways(gomock.Any()).Return(&ec2.DescribeNatGatewaysOutput{}, nil).AnyTimes()
+				r.DeleteNatGateway(gomock.Any()).Return(&ec2.DeleteNatGatewayOutput{}, nil).AnyTimes()
+				r.DescribeNetworkInterfaces(gomock.Any()).Return(&ec2.DescribeNetworkInterfacesOutput{}, nil).AnyTimes()
+				r.DetachNetworkInterface(gomock.Any()).Return(&ec2.DetachNetworkInterfaceOutput{}, nil).AnyTimes()
+				r.DeleteNetworkInterface(gomock.Any()).Return(&ec2.DeleteNetworkInterfaceOutput{}, nil).AnyTimes()
+				r.DescribeInternetGateways(gomock.Any()).Return(&ec2.DescribeInternetGatewaysOutput{}, nil).AnyTimes()
+				r.DeleteInternetGateway(gomock.Any()).Return(&ec2.DeleteInternetGatewayOutput{}, nil).AnyTimes()
+				r.DescribeVpnGateways(gomock.Any()).Return(&ec2.DescribeVpnGatewaysOutput{}, nil).AnyTimes()
+				r.DescribeNetworkAcls(gomock.Any()).Return(&ec2.DescribeNetworkAclsOutput{}, nil).AnyTimes()
+				r.DeleteNetworkAcl(gomock.Any()).Return(&ec2.DeleteNetworkAclOutput{}, nil).AnyTimes()
+				r.DescribeRouteTables(gomock.Any()).Return(&ec2.DescribeRouteTablesOutput{}, nil).AnyTimes()
+				r.DisassociateRouteTable(gomock.Any()).Return(&ec2.DisassociateRouteTableOutput{}, nil).AnyTimes()
+				r.DeleteRouteTable(gomock.Any()).Return(&ec2.DeleteRouteTableOutput{}, nil).AnyTimes()
+				r.DescribeSubnets(gomock.Any()).Return(&ec2.DescribeSubnetsOutput{}, nil).AnyTimes()
+				r.DeleteSubnet(gomock.Any()).Return(&ec2.DeleteSubnetOutput{}, nil).AnyTimes()
+				r.DescribeSecurityGroups(gomock.Any()).Return(&ec2.DescribeSecurityGroupsOutput{}, nil).AnyTimes()
+				r.RevokeSecurityGroupIngress(gomock.Any()).Return(&ec2.RevokeSecurityGroupIngressOutput{}, nil).AnyTimes()
+				r.DeleteSecurityGroup(gomock.Any()).Return(&ec2.DeleteSecurityGroupOutput{}, nil).AnyTimes()
+				r.DeleteVpc(gomock.Any()).Return(&ec2.DeleteVpcOutput{}, nil).AnyTimes()
+			},
+			errorExpected:   true,
+			listOfInstances: []*string{aws.String("abcd"), aws.String("abcd")},
+		},
+		// NOTE :
+		// other test cases can be generated by changing the above 4 function calls
+		// please change the return() parameter accordingly
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			mocks := setupDefaultMocks(t)
+			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
+
+			mockExecution := DeleteVpcInstances(mocks.mockAWSClient, tc.listOfInstances)
 
 			if mockExecution != nil && tc.errorExpected == false {
 				t.Errorf(tc.title, "Failed")
