@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: aws-account-operator-template
+
+parameters:
+  - name: SHREDDER_NAMESPACE
+    required: true
+    value: aws-account-shredder
+
+
+objects:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: account-reader
+    rules:
+      - apiGroups:
+          - aws.managed.openshift.io
+        resources:
+          - accounts
+        verbs:
+          - 'get'
+          - 'list'
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: read-accounts
+    subjects:
+      - kind: ServiceAccount
+        name: aws-account-shredder
+        namespace: ${SHREDDER_NAMESPACE}
+    roleRef:
+      kind: Role
+      name: account-reader
+      apiGroup: rbac.authorization.k8s.io

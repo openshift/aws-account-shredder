@@ -15,6 +15,39 @@ parameters:
     value : "1"
 
 objects:
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: aws-account-shredder
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: aws-account-shredder
+    rules:
+      - apiGroups:
+          - route.openshift.io
+        resources:
+          - routes
+        verbs:
+          - '*'
+      - apiGroups:
+          - ""
+        resources:
+          - services
+          - secrets
+        verbs:
+          - '*'
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: aws-account-shredder
+    subjects:
+      - kind: ServiceAccount
+        name: aws-account-shredder
+    roleRef:
+      kind: Role
+      name: aws-account-shredder
+      apiGroup: rbac.authorization.k8s.io
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
