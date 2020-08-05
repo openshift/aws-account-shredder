@@ -87,7 +87,7 @@ objects:
           containers:
             - name: aws-account-shredder
               image: ${IMAGE}:${IMAGE_TAG}
-              imagepullpolicy: IfNotPresent
+              imagepullpolicy: always
               resources:
                 requests:
                   memory: "100Mi"
