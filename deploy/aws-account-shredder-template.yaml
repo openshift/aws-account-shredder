@@ -69,7 +69,7 @@ objects:
       labels:
         name: aws-account-shredder
     spec:
-      replicas: ${REPLICAS}
+      replicas: ${{REPLICAS}}
       strategy:
         type: RollingUpdate
         rollingUpdate:
