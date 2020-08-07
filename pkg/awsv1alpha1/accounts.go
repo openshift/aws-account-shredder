@@ -9,7 +9,7 @@ import (
 )
 
 // read the account ID and pass it to the cleanup service
-func GetAccountIDsToReset(ctx context.Context, cli client.Client) ([]string, error) {
+func GetAccountCRsToReset(ctx context.Context, cli client.Client) ([]awsv1alpha1.Account, error) {
 
 	var accounts awsv1alpha1.AccountList
 	err := cli.List(ctx, &accounts, &client.ListOptions{
@@ -20,12 +20,12 @@ func GetAccountIDsToReset(ctx context.Context, cli client.Client) ([]string, err
 		return nil, err
 	}
 
-	var accountID []string
+	var accountCRs []awsv1alpha1.Account
 	for _, account := range accounts.Items {
 		if account.Spec.ClaimLink == "" && account.Status.State == "Failed" && !account.Spec.BYOC {
-			accountID = append(accountID, account.Spec.AwsAccountID)
+			accountCRs = append(accountCRs, account)
 		}
 
 	}
-	return accountID, err
+	return accountCRs, err
 }

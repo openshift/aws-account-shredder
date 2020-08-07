@@ -73,5 +73,6 @@ func CleanS3Instances(client clientpkg.Client) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("All S3 buckets have been deleted for this region")
 	return nil
 }
