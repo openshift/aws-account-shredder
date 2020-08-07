@@ -85,7 +85,7 @@ func CleanEc2Instances(client clientpkg.Client) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("All EC2 instances have been terminated for this region")
 	return nil
 
 }

@@ -74,16 +74,18 @@ func main() {
 	}
 	for {
 		// reading the account ID to be cleared
-		accountIDlist, err := awsv1alpha1.GetAccountIDsToReset(context.TODO(), cli)
+		accountCRList, err := awsv1alpha1.GetAccountCRsToReset(context.TODO(), cli)
 		if err != nil {
 			fmt.Println("ERROR: ", err)
 		}
 
-		for _, accountID := range accountIDlist {
-			fmt.Println("Now Processing AccountID: ", accountID)
+		for _, account := range accountCRList {
+			fmt.Println("Now Processing :")
+			fmt.Println("AccountCR:", account.Name)
+			fmt.Println("AccountID:", account.Spec.AwsAccountID)
 
 			// assuming roles for the given AccountID
-			RoleArnParameter := "arn:aws:iam::" + accountID + ":role/OrganizationAccountAccessRole"
+			RoleArnParameter := "arn:aws:iam::" + account.Spec.AwsAccountID + ":role/OrganizationAccountAccessRole"
 			assumedRole, err := awsClient.AssumeRole(&sts.AssumeRoleInput{RoleArn: aws.String(RoleArnParameter), RoleSessionName: aws.String(sessionName)})
 			if err != nil {
 				fmt.Println("ERROR:", err)
