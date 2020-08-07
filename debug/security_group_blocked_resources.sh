@@ -1,0 +1,1 @@
+aws ec2 describe-network-interfaces --filters Name=<group-id>,Values=<group-id> --region <region> --output json
