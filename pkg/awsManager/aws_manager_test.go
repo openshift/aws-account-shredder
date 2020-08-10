@@ -251,3 +251,95 @@ func TestDeleteVpcInstacnes(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteEbsSnapshot(t *testing.T) {
+	testCases := []struct {
+		title              string
+		setupAWSMock       func(r *mock.MockClientMockRecorder)
+		listOfEbsSnapshots []*string
+		errorExpected      bool
+	}{
+		{
+			title: "test 1 - No Instances passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+
+			},
+			listOfEbsSnapshots: nil,
+			errorExpected:      false,
+		}, {
+			title: "test 2 - Invalid EBS snapshots passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DeleteSnapshot(gomock.Any()).Return(&ec2.DeleteSnapshotOutput{}, errors.New("ERROR")).AnyTimes()
+			},
+			listOfEbsSnapshots: []*string{aws.String("abcd"), aws.String("abcd")},
+			errorExpected:      true,
+		}, {
+			title: "test 3 - valid EBS instance passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DeleteSnapshot(gomock.Any()).Return(&ec2.DeleteSnapshotOutput{}, nil).AnyTimes()
+
+			},
+			listOfEbsSnapshots: []*string{aws.String("abcd"), aws.String("abcd")},
+			errorExpected:      false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			mocks := setupDefaultMocks(t)
+			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
+
+			mockExecution := DeleteEbsSnapshots(mocks.mockAWSClient, tc.listOfEbsSnapshots)
+
+			if mockExecution != nil && tc.errorExpected == false {
+				t.Errorf(tc.title, "Failed")
+			}
+		})
+	}
+}
+
+func TestDeleteEbsVolumes(t *testing.T) {
+	testCases := []struct {
+		title            string
+		setupAWSMock     func(r *mock.MockClientMockRecorder)
+		listOfEbsVolumes []*string
+		errorExpected    bool
+	}{
+		{
+			title: "test 1 - No EBS volume ID passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+
+			},
+			listOfEbsVolumes: nil,
+			errorExpected:    false,
+		}, {
+			title: "test 2 - Invalid EBS Volume ID's passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DeleteVolume(gomock.Any()).Return(&ec2.DeleteVolumeOutput{}, errors.New("ERROR")).AnyTimes()
+			},
+			listOfEbsVolumes: []*string{aws.String("abcd"), aws.String("abcd")},
+			errorExpected:    true,
+		}, {
+			title: "test 3 - valid EBS  value ID's instance passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DeleteVolume(gomock.Any()).Return(&ec2.DeleteVolumeOutput{}, nil).AnyTimes()
+
+			},
+			listOfEbsVolumes: []*string{aws.String("abcd"), aws.String("abcd")},
+			errorExpected:    false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			mocks := setupDefaultMocks(t)
+			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
+
+			mockExecution := DeleteEbsVolumes(mocks.mockAWSClient, tc.listOfEbsVolumes)
+
+			if mockExecution != nil && tc.errorExpected == false {
+				t.Errorf(tc.title, "Failed")
+			}
+		})
+	}
+}
