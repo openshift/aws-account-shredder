@@ -18,6 +18,7 @@ Route Tables
 Network ACL 
 Security Groups
 VPN gateway and endpoints
+Elastic File storage mount targets and volumes
 ````
 
 In case additional resources need to be deleted, the logic for that has to be programmed in the directory `````/pkg/awsManager`````
