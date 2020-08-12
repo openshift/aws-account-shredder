@@ -2,6 +2,7 @@ package awsManager
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/efs"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -336,6 +337,96 @@ func TestDeleteEbsVolumes(t *testing.T) {
 			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
 
 			mockExecution := DeleteEbsVolumes(mocks.mockAWSClient, tc.listOfEbsVolumes)
+
+			if mockExecution != nil && tc.errorExpected == false {
+				t.Errorf(tc.title, "Failed")
+			}
+		})
+	}
+}
+
+func TestDeleteEFS(t *testing.T) {
+	testCases := []struct {
+		title                 string
+		setupAWSMock          func(r *mock.MockClientMockRecorder)
+		fileSystemToBeDeleted []*string
+		errorExpected         bool
+	}{
+		{
+			title: "test 1 - No EFS ID passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+
+			},
+			fileSystemToBeDeleted: nil,
+			errorExpected:         false,
+		}, {
+			title: "test 2 - Invalid EFS ID passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DeleteFileSystem(gomock.Any()).Return(&efs.DeleteFileSystemOutput{}, errors.New("Error")).AnyTimes()
+			},
+			fileSystemToBeDeleted: []*string{aws.String("abcd"), aws.String("abcd")},
+			errorExpected:         true,
+		}, {
+			title: "test 3 - valid EFS ID passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DeleteFileSystem(gomock.Any()).Return(&efs.DeleteFileSystemOutput{}, nil).AnyTimes()
+			},
+			fileSystemToBeDeleted: []*string{aws.String("abcd"), aws.String("abcd")},
+			errorExpected:         false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			mocks := setupDefaultMocks(t)
+			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
+
+			mockExecution := deleteEFS(mocks.mockAWSClient, tc.fileSystemToBeDeleted)
+
+			if mockExecution != nil && tc.errorExpected == false {
+				t.Errorf(tc.title, "Failed")
+			}
+		})
+	}
+}
+
+func TestDeleteEFSMountTarget(t *testing.T) {
+	testCases := []struct {
+		title                  string
+		setupAWSMock           func(r *mock.MockClientMockRecorder)
+		mountTargetToBeDeleted []*string
+		errorExpected          bool
+	}{
+		{
+			title: "test 1 - No EFS mount target ID passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+
+			},
+			mountTargetToBeDeleted: nil,
+			errorExpected:          false,
+		}, {
+			title: "test 2 - Invalid EFS mount target ID passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DeleteMountTarget(gomock.Any()).Return(&efs.DeleteMountTargetOutput{}, errors.New("ERROR")).AnyTimes()
+			},
+			mountTargetToBeDeleted: []*string{aws.String("abcd"), aws.String("abcd")},
+			errorExpected:          true,
+		}, {
+			title: "test 3 - valid EFS mount target ID passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DeleteMountTarget(gomock.Any()).Return(&efs.DeleteMountTargetOutput{}, nil).AnyTimes()
+			},
+			mountTargetToBeDeleted: []*string{aws.String("abcd"), aws.String("abcd")},
+			errorExpected:          false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			mocks := setupDefaultMocks(t)
+			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
+
+			mockExecution := deleteEFSMountTarget(mocks.mockAWSClient, tc.mountTargetToBeDeleted)
 
 			if mockExecution != nil && tc.errorExpected == false {
 				t.Errorf(tc.title, "Failed")

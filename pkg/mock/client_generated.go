@@ -6,6 +6,7 @@ package mock
 
 import (
 	ec2 "github.com/aws/aws-sdk-go/service/ec2"
+	efs "github.com/aws/aws-sdk-go/service/efs"
 	elb "github.com/aws/aws-sdk-go/service/elb"
 	elbv2 "github.com/aws/aws-sdk-go/service/elbv2"
 	route53 "github.com/aws/aws-sdk-go/service/route53"
@@ -546,6 +547,66 @@ func (m *MockClient) DescribeVolumes(input *ec2.DescribeVolumesInput) (*ec2.Desc
 func (mr *MockClientMockRecorder) DescribeVolumes(input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeVolumes", reflect.TypeOf((*MockClient)(nil).DescribeVolumes), input)
+}
+
+// DescribeMountTargets mocks base method
+func (m *MockClient) DescribeMountTargets(input *efs.DescribeMountTargetsInput) (*efs.DescribeMountTargetsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeMountTargets", input)
+	ret0, _ := ret[0].(*efs.DescribeMountTargetsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeMountTargets indicates an expected call of DescribeMountTargets
+func (mr *MockClientMockRecorder) DescribeMountTargets(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeMountTargets", reflect.TypeOf((*MockClient)(nil).DescribeMountTargets), input)
+}
+
+// DeleteMountTarget mocks base method
+func (m *MockClient) DeleteMountTarget(input *efs.DeleteMountTargetInput) (*efs.DeleteMountTargetOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteMountTarget", input)
+	ret0, _ := ret[0].(*efs.DeleteMountTargetOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteMountTarget indicates an expected call of DeleteMountTarget
+func (mr *MockClientMockRecorder) DeleteMountTarget(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMountTarget", reflect.TypeOf((*MockClient)(nil).DeleteMountTarget), input)
+}
+
+// DescribeFileSystems mocks base method
+func (m *MockClient) DescribeFileSystems(input *efs.DescribeFileSystemsInput) (*efs.DescribeFileSystemsOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeFileSystems", input)
+	ret0, _ := ret[0].(*efs.DescribeFileSystemsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeFileSystems indicates an expected call of DescribeFileSystems
+func (mr *MockClientMockRecorder) DescribeFileSystems(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeFileSystems", reflect.TypeOf((*MockClient)(nil).DescribeFileSystems), input)
+}
+
+// DeleteFileSystem mocks base method
+func (m *MockClient) DeleteFileSystem(input *efs.DeleteFileSystemInput) (*efs.DeleteFileSystemOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteFileSystem", input)
+	ret0, _ := ret[0].(*efs.DeleteFileSystemOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteFileSystem indicates an expected call of DeleteFileSystem
+func (mr *MockClientMockRecorder) DeleteFileSystem(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFileSystem", reflect.TypeOf((*MockClient)(nil).DeleteFileSystem), input)
 }
 
 // DescribeLoadBalancers mocks base method

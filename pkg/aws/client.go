@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/aws/aws-sdk-go/service/efs"
+	"github.com/aws/aws-sdk-go/service/efs/efsiface"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elb/elbiface"
 	"github.com/aws/aws-sdk-go/service/elbv2"
@@ -60,6 +62,12 @@ type Client interface {
 	DeleteSnapshot(input *ec2.DeleteSnapshotInput) (*ec2.DeleteSnapshotOutput, error)
 	DescribeVolumes(input *ec2.DescribeVolumesInput) (*ec2.DescribeVolumesOutput, error)
 
+	//efs
+	DescribeMountTargets(input *efs.DescribeMountTargetsInput) (*efs.DescribeMountTargetsOutput, error)
+	DeleteMountTarget(input *efs.DeleteMountTargetInput) (*efs.DeleteMountTargetOutput, error)
+	DescribeFileSystems(input *efs.DescribeFileSystemsInput) (*efs.DescribeFileSystemsOutput, error)
+	DeleteFileSystem(input *efs.DeleteFileSystemInput) (*efs.DeleteFileSystemOutput, error)
+
 	//ELB
 	DescribeLoadBalancers(input *elb.DescribeLoadBalancersInput) (*elb.DescribeLoadBalancersOutput, error)
 	DeleteLoadBalancer(input *elb.DeleteLoadBalancerInput) (*elb.DeleteLoadBalancerOutput, error)
@@ -91,6 +99,7 @@ type awsClient struct {
 	route53client route53iface.Route53API
 	elbClient     elbiface.ELBAPI
 	elbv2Client   elbv2iface.ELBV2API
+	efsClient     efsiface.EFSAPI
 }
 
 func (c *awsClient) DescribeInstanceStatus(input *ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error) {
@@ -226,6 +235,23 @@ func (c *awsClient) DescribeVolumes(input *ec2.DescribeVolumesInput) (*ec2.Descr
 	return c.ec2Client.DescribeVolumes(input)
 }
 
+//efs
+func (c *awsClient) DescribeMountTargets(input *efs.DescribeMountTargetsInput) (*efs.DescribeMountTargetsOutput, error) {
+	return c.efsClient.DescribeMountTargets(input)
+}
+
+func (c *awsClient) DeleteMountTarget(input *efs.DeleteMountTargetInput) (*efs.DeleteMountTargetOutput, error) {
+	return c.efsClient.DeleteMountTarget(input)
+}
+
+func (c *awsClient) DescribeFileSystems(input *efs.DescribeFileSystemsInput) (*efs.DescribeFileSystemsOutput, error) {
+	return c.efsClient.DescribeFileSystems(input)
+}
+
+func (c *awsClient) DeleteFileSystem(input *efs.DeleteFileSystemInput) (*efs.DeleteFileSystemOutput, error) {
+	return c.efsClient.DeleteFileSystem(input)
+}
+
 // ELB
 func (c *awsClient) DescribeLoadBalancers(input *elb.DescribeLoadBalancersInput) (*elb.DescribeLoadBalancersOutput, error) {
 	return c.elbClient.DescribeLoadBalancers(input)
@@ -307,5 +333,6 @@ func NewClient(awsAccessID, awsAccessSecret, token, region string) (Client, erro
 		route53client: route53.New(s),
 		elbClient:     elb.New(s),
 		elbv2Client:   elbv2.New(s),
+		efsClient:     efs.New(s),
 	}, nil
 }
