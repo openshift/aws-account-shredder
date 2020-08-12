@@ -108,6 +108,8 @@ func main() {
 				awsManager.CleanS3Instances(assumedRoleClient)
 				awsManager.CleanEc2Instances(assumedRoleClient)
 				awsManager.CleanUpAwsRoute53(assumedRoleClient)
+				awsManager.CleanEFSMountTargets(assumedRoleClient)
+				awsManager.CleanEFS(assumedRoleClient)
 				awsManager.CleanVpcInstances(assumedRoleClient)
 				awsManager.CleanEbsSnapshots(assumedRoleClient)
 				awsManager.CleanEbsVolumes(assumedRoleClient)
