@@ -44,7 +44,7 @@ func CleanVpcInstances(client clientpkg.Client) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(vpcToBeDeleted)
+
 	err = DeleteVpcInstances(client, vpcToBeDeleted)
 
 	if err != nil {

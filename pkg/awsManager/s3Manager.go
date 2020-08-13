@@ -67,7 +67,6 @@ func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string) er
 
 func CleanS3Instances(client clientpkg.Client) error {
 	s3InstancesToBeDeleted := ListS3InstancesForDeletion(client)
-	fmt.Println(s3InstancesToBeDeleted)
 	err := DeleteS3Buckets(client, s3InstancesToBeDeleted)
 
 	if err != nil {

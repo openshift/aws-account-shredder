@@ -78,7 +78,7 @@ func ListVolumeForDeletion(client clientpkg.Client) []*string {
 		}
 
 		for _, ebsVolume := range ebsVolumeList.Volumes {
-			fmt.Println(ebsVolume)
+
 			if *ebsVolume.State == "available" {
 				ebsVolumesToBeDeleted = append(ebsVolumesToBeDeleted, ebsVolume.VolumeId)
 			}
