@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// read the account ID and pass it to the cleanup service
+// GetAccountCRsToReset returns a list of account crs with a Failed state
 func GetAccountCRsToReset(ctx context.Context, cli client.Client) ([]awsv1alpha1.Account, error) {
 
 	var accounts awsv1alpha1.AccountList
@@ -28,4 +28,14 @@ func GetAccountCRsToReset(ctx context.Context, cli client.Client) ([]awsv1alpha1
 
 	}
 	return accountCRs, err
+}
+
+// SetAccountStateReady sets an account state to Ready
+func SetAccountStateReady(cli client.Client, account awsv1alpha1.Account) error {
+	account.Status.State = "Ready"
+	err := cli.Status().Update(context.TODO(), &account)
+	if err != nil {
+		fmt.Println("Failed to reset account to a \"Ready\" state: ", err)
+	}
+	return err
 }

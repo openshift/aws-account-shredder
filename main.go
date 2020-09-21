@@ -101,21 +101,31 @@ func main() {
 			assumedSecretKey := *assumedRole.Credentials.SecretAccessKey
 			assumedSessionToken := *assumedRole.Credentials.SessionToken
 
+			var allErrors []error
 			for _, region := range supportedRegions {
 				logger = log.WithValues("AccountName", account.Name, "AccountID", account.Spec.AwsAccountID, "Region", region)
 				assumedRoleClient, err := clientpkg.NewClient(assumedAccessKey, assumedSecretKey, assumedSessionToken, region)
 				if err != nil {
 					logger.Error(err, "Failed to initialize new AWS client")
 				}
-
-				awsManager.CleanS3Instances(assumedRoleClient, logger)
-				awsManager.CleanEc2Instances(assumedRoleClient, logger)
-				awsManager.CleanUpAwsRoute53(assumedRoleClient, logger)
-				awsManager.CleanEFSMountTargets(assumedRoleClient, logger)
-				awsManager.CleanEFS(assumedRoleClient, logger)
-				awsManager.CleanVpcInstances(assumedRoleClient, logger)
-				awsManager.CleanEbsSnapshots(assumedRoleClient, logger)
-				awsManager.CleanEbsVolumes(assumedRoleClient, logger)
+				allErrors = append(allErrors, awsManager.CleanS3Instances(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.CleanEc2Instances(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.CleanUpAwsRoute53(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.CleanEFSMountTargets(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.CleanEFS(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.CleanVpcInstances(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.CleanEbsSnapshots(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.CleanEbsVolumes(assumedRoleClient, logger))
+			}
+			// After cleaning up every region we set the account state to Ready if no errors were encountered
+			resetAccount := true
+			for _, err := range allErrors {
+				if err != nil {
+					resetAccount = false
+				}
+			}
+			if resetAccount {
+				awsv1alpha1.SetAccountStateReady(cli, account)
 			}
 		}
 	}
