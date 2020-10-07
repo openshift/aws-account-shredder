@@ -2,14 +2,15 @@ package awsManager
 
 import (
 	"errors"
-	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/go-logr/logr"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
 )
 
-// this does not delete the Ebs snapshots, this only creates an []* string for the resources that have to deleted
-func ListEbsSnapshotForDeletion(client clientpkg.Client) []*string {
+//ListEbsSnapshotForDeletion does not delete the Ebs snapshots, this only creates an []* string for the resources that have to deleted
+func ListEbsSnapshotForDeletion(client clientpkg.Client, logger logr.Logger) []*string {
 
 	var ebsSnapshotsToBeDeleted []*string
 	var token *string
@@ -23,7 +24,7 @@ func ListEbsSnapshotForDeletion(client clientpkg.Client) []*string {
 	for {
 		ebsSnapshotList, err := client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{Filters: []*ec2.Filter{&selfOwnerFilter}, NextToken: token})
 		if err != nil {
-			fmt.Println("ERROR:", err)
+			logger.Error(err, "Failed to list EBS snapshots")
 		}
 
 		for _, ebsSnapshot := range ebsSnapshotList.Snapshots {
@@ -40,32 +41,31 @@ func ListEbsSnapshotForDeletion(client clientpkg.Client) []*string {
 	return ebsSnapshotsToBeDeleted
 }
 
-// this deletes the Ebs Snapshot
+// DeleteEbsSnapshots deletes the Ebs Snapshot
 // successful execution returns nil. Unsuccessful execution or errors occured, would return an error
-func DeleteEbsSnapshots(client clientpkg.Client, ebsSnapshotsToBeDeleted []*string) error {
+func DeleteEbsSnapshots(client clientpkg.Client, ebsSnapshotsToBeDeleted []*string, logger logr.Logger) error {
 
 	if ebsSnapshotsToBeDeleted == nil {
 		return nil
 	}
 	var ebsSnapshotsNotDeleted []*string
-	for _, ebsSnapshotId := range ebsSnapshotsToBeDeleted {
+	for _, ebsSnapshotID := range ebsSnapshotsToBeDeleted {
 
-		_, ebsSnapshotDeleteError := client.DeleteSnapshot(&ec2.DeleteSnapshotInput{SnapshotId: ebsSnapshotId})
+		_, ebsSnapshotDeleteError := client.DeleteSnapshot(&ec2.DeleteSnapshotInput{SnapshotId: ebsSnapshotID})
 		if ebsSnapshotDeleteError != nil {
-			fmt.Println(ebsSnapshotDeleteError)
-			fmt.Print("Could not delete snapshot :", *ebsSnapshotId)
-			ebsSnapshotsNotDeleted = append(ebsSnapshotsNotDeleted, ebsSnapshotId)
+			logger.Error(ebsSnapshotDeleteError, "Failed to delete snapshot", *ebsSnapshotID)
+			ebsSnapshotsNotDeleted = append(ebsSnapshotsNotDeleted, ebsSnapshotID)
 		}
 	}
 
 	if ebsSnapshotsNotDeleted != nil {
-		return errors.New("Could not delete all snapshots for this region")
+		return errors.New("FailedComprehensiveSnapshotDeletion")
 	}
 
 	return nil
 }
 
-func ListVolumeForDeletion(client clientpkg.Client) []*string {
+func listVolumeForDeletion(client clientpkg.Client, logger logr.Logger) []*string {
 
 	var token *string
 	var ebsVolumesToBeDeleted []*string
@@ -73,7 +73,7 @@ func ListVolumeForDeletion(client clientpkg.Client) []*string {
 	for {
 		ebsVolumeList, err := client.DescribeVolumes(&ec2.DescribeVolumesInput{NextToken: token})
 		if err != nil {
-			fmt.Print(err)
+			logger.Error(err, "Failed to retrieve Volume list")
 			return nil
 		}
 
@@ -93,48 +93,48 @@ func ListVolumeForDeletion(client clientpkg.Client) []*string {
 	return ebsVolumesToBeDeleted
 }
 
-func DeleteEbsVolumes(client clientpkg.Client, ebsVolumesToBeDeleted []*string) error {
+func deleteEbsVolumes(client clientpkg.Client, ebsVolumesToBeDeleted []*string, logger logr.Logger) error {
 
 	if ebsVolumesToBeDeleted == nil {
 		return nil
 	}
 	var ebsVolumesNotDeleted []*string
-	for _, ebsVolumeId := range ebsVolumesToBeDeleted {
+	for _, ebsVolumeID := range ebsVolumesToBeDeleted {
 
-		_, err := client.DeleteVolume(&ec2.DeleteVolumeInput{VolumeId: ebsVolumeId})
+		_, err := client.DeleteVolume(&ec2.DeleteVolumeInput{VolumeId: ebsVolumeID})
 		if err != nil {
-			fmt.Println(err)
-			fmt.Print("Could not delete Volume :", *ebsVolumeId)
-			ebsVolumesNotDeleted = append(ebsVolumesNotDeleted, ebsVolumeId)
+			logger.Error(err, "Failed to delete Volume", *ebsVolumeID)
+			ebsVolumesNotDeleted = append(ebsVolumesNotDeleted, ebsVolumeID)
 		}
 	}
 
 	if ebsVolumesNotDeleted != nil {
-		return errors.New("Could not delete all EBS volume for this region")
+		return errors.New("FailedComprehensiveEBSVolumesDeletion")
 	}
 
 	return nil
 }
 
-func CleanEbsSnapshots(client clientpkg.Client) error {
-	ebsSnapshotsToBeDeleted := ListEbsSnapshotForDeletion(client)
-	err := DeleteEbsSnapshots(client, ebsSnapshotsToBeDeleted)
+// CleanEbsSnapshots lists and deletes EBS Snapshots
+func CleanEbsSnapshots(client clientpkg.Client, logger logr.Logger) error {
+	ebsSnapshotsToBeDeleted := ListEbsSnapshotForDeletion(client, logger)
+	err := DeleteEbsSnapshots(client, ebsSnapshotsToBeDeleted, logger)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error(err, "Failed to delete EBS snapshots")
 		return err
 	}
-	fmt.Println("All EBS snapshots have been removed for this region")
+	logger.Info("All EBS snapshots have been removed for this region")
 	return nil
 }
 
-func CleanEbsVolumes(client clientpkg.Client) error {
-
-	ebsVolumeToBeDeleted := ListVolumeForDeletion(client)
-	err := DeleteEbsVolumes(client, ebsVolumeToBeDeleted)
+// CleanEbsVolumes lists and deletes EBS volumes
+func CleanEbsVolumes(client clientpkg.Client, logger logr.Logger) error {
+	ebsVolumeToBeDeleted := listVolumeForDeletion(client, logger)
+	err := deleteEbsVolumes(client, ebsVolumeToBeDeleted, logger)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error(err, "Failed to delete EBS volumes")
 		return err
 	}
-	fmt.Println("All EBS volumes have been removed successfully for this region")
+	logger.Info("All EBS volumes have been removed successfully for this region")
 	return nil
 }

@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"flag"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sts"
 	routev1 "github.com/openshift/api/route/v1"
@@ -13,9 +14,12 @@ import (
 	"github.com/openshift/aws-account-shredder/pkg/k8sWrapper"
 	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 	"github.com/openshift/operator-custom-metrics/pkg/metrics"
+	"github.com/operator-framework/operator-sdk/pkg/log/zap"
+	"github.com/spf13/pflag"
 	clientGoScheme "k8s.io/client-go/kubernetes/scheme"
 	kubeRest "k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 const (
@@ -26,26 +30,37 @@ const (
 
 var (
 	supportedRegions = []string{"us-east-1", "us-east-2", "us-west-1", "us-west-2", "ca-central-1", "eu-central-1", "eu-west-1", "eu-west-2", "eu-west-3", "ap-northeast-1", "ap-northeast-2", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "sa-east-1"}
+	log              = logf.Log.WithName("shredder_logger")
 )
 
 func main() {
+	// Add the zap logger flag set to the CLI. The flag set must
+	// be added before calling pflag.Parse().
+	pflag.CommandLine.AddFlagSet(zap.FlagSet())
+
+	// Add flags registered by imported packages (e.g. glog and
+	// controller-runtime)
+	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
+	pflag.Parse()
+	logf.SetLogger(zap.Logger())
+
 	// creates the in-cluster config
 	config, err := kubeRest.InClusterConfig()
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err, "Failed to retrieve in cluster config")
 	}
 
 	// creating a client for reading the AccountID
 	cli, err := client.New(config, client.Options{})
 	if err != nil {
-		fmt.Println("ERROR:", err)
+		log.Error(err, "Failed to initialize new client")
 	}
 
 	//integrating the account CRD to this project
 	v1alpha1.AddToScheme(clientGoScheme.Scheme)
 
 	if err := routev1.AddToScheme(clientGoScheme.Scheme); err != nil {
-		fmt.Println("ERROR: ", err)
+		log.Error(err, "Failed to integrate account CR to scheme")
 	}
 
 	//Create localMetrics endpoint and register localMetrics
@@ -57,38 +72,36 @@ func main() {
 
 	// Configure localMetrics if it errors log the error but continue
 	if err := metrics.ConfigureMetrics(context.TODO(), *metricsServer); err != nil {
-		fmt.Println(err, "Failed to configure Metrics")
+		log.Error(err, "Failed to configure metrics")
 
 	}
 
 	//reading the aws-account-shredder-credentials secret
 	accessKeyID, secretAccessKey, err := k8sWrapper.GetAWSAccountCredentials(context.TODO(), cli)
 	if err != nil {
-		fmt.Println("ERROR: ", err)
+		log.Error(err, "Failed to read aws-account-shredder-credentials secret")
 	}
 
 	// creating a new AWSclient with the information extracted from the secret file
 	awsClient, err := clientpkg.NewClient(accessKeyID, secretAccessKey, "", "us-east-1")
 	if err != nil {
-		fmt.Println("ERROR:", err)
+		log.Error(err, "Failed to create new AWSclient")
 	}
 	for {
 		// reading the account ID to be cleared
 		accountCRList, err := awsv1alpha1.GetAccountCRsToReset(context.TODO(), cli)
 		if err != nil {
-			fmt.Println("ERROR: ", err)
+			log.Error(err, "Failed to retieve list of accounts to clean")
 		}
 
 		for _, account := range accountCRList {
-			fmt.Println("Now Processing :")
-			fmt.Println("AccountCR:", account.Name)
-			fmt.Println("AccountID:", account.Spec.AwsAccountID)
+			logger := log.WithValues("AccountName", account.Name, "AccountID", account.Spec.AwsAccountID)
 
 			// assuming roles for the given AccountID
 			RoleArnParameter := "arn:aws:iam::" + account.Spec.AwsAccountID + ":role/OrganizationAccountAccessRole"
 			assumedRole, err := awsClient.AssumeRole(&sts.AssumeRoleInput{RoleArn: aws.String(RoleArnParameter), RoleSessionName: aws.String(sessionName)})
 			if err != nil {
-				fmt.Println("ERROR:", err)
+				logger.Error(err, "Failed to assume necessary account role")
 				// need continue , or else the next line will throw an error ( non existing pointer being deferenced)
 				// hence moving on to next element
 				continue
@@ -99,20 +112,20 @@ func main() {
 			assumedSessionToken := *assumedRole.Credentials.SessionToken
 
 			for _, region := range supportedRegions {
-				fmt.Println("\n Current Region : ", region)
+				logger = log.WithValues("AccountName", account.Name, "AccountID", account.Spec.AwsAccountID, "Region", region)
 				assumedRoleClient, err := clientpkg.NewClient(assumedAccessKey, assumedSecretKey, assumedSessionToken, region)
 				if err != nil {
-					fmt.Println("ERROR:", err)
+					logger.Error(err, "Failed to initialize new client")
 				}
 
-				awsManager.CleanS3Instances(assumedRoleClient)
-				awsManager.CleanEc2Instances(assumedRoleClient)
-				awsManager.CleanUpAwsRoute53(assumedRoleClient)
-				awsManager.CleanEFSMountTargets(assumedRoleClient)
-				awsManager.CleanEFS(assumedRoleClient)
-				awsManager.CleanVpcInstances(assumedRoleClient)
-				awsManager.CleanEbsSnapshots(assumedRoleClient)
-				awsManager.CleanEbsVolumes(assumedRoleClient)
+				awsManager.CleanS3Instances(assumedRoleClient, logger)
+				awsManager.CleanEc2Instances(assumedRoleClient, logger)
+				awsManager.CleanUpAwsRoute53(assumedRoleClient, logger)
+				awsManager.CleanEFSMountTargets(assumedRoleClient, logger)
+				awsManager.CleanEFS(assumedRoleClient, logger)
+				awsManager.CleanVpcInstances(assumedRoleClient, logger)
+				awsManager.CleanEbsSnapshots(assumedRoleClient, logger)
+				awsManager.CleanEbsVolumes(assumedRoleClient, logger)
 			}
 		}
 	}
