@@ -6,7 +6,7 @@ metadata:
 parameters:
   - name: IMAGE
     required: true
-    value: quay.io/agautam/aws-account-shredder
+    value: quay.io/app-sre/aws-account-shredder
   - name: IMAGE_TAG
     required: true
     value: latest
@@ -87,7 +87,7 @@ objects:
           containers:
             - name: aws-account-shredder
               image: ${IMAGE}:${IMAGE_TAG}
-              imagepullpolicy: always
+              imagepullpolicy: Always
               resources:
                 requests:
                   memory: "100Mi"

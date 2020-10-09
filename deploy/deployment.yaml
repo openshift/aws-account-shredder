@@ -17,8 +17,8 @@ spec:
       serviceAccountName: aws-account-shredder
       containers:
         - name: aws-account-shredder
-          image: quay.io/agautam/aws-account-shredder:latest
-          imagePullPolicy: always
+          image: quay.io/app-sre/aws-account-shredder:latest
+          imagePullPolicy: Always
           resources:
             requestes:
               memory: "100Mi"
