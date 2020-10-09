@@ -3,6 +3,7 @@ module github.com/openshift/aws-account-shredder
 go 1.13
 
 replace (
+	bitbucket.org/ww/goautoneg => github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 	k8s.io/api => k8s.io/api v0.18.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.2
 	k8s.io/apimachinery => k8s.io/apimachinery v0.18.2
@@ -28,12 +29,12 @@ replace (
 require (
 	github.com/aws/aws-sdk-go v1.31.13
 	github.com/golang/mock v1.4.3
+	github.com/openshift/api v3.9.1-0.20190424152011-77b8897ec79a+incompatible
 	github.com/openshift/aws-account-operator v0.0.0-20200610163429-768659a7cd0c
-	github.com/openshift/operator-custom-metrics v0.3.0 // indirect
+	github.com/openshift/operator-custom-metrics v0.3.0
 	github.com/prometheus/client_golang v1.7.1
 	k8s.io/api v0.18.2
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v12.0.0+incompatible
 	sigs.k8s.io/controller-runtime v0.6.0
-	sigs.k8s.io/structured-merge-diff v0.0.0-20190525122527-15d366b2352e // indirect
 )
