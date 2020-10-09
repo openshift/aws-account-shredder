@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sts"
@@ -15,7 +14,6 @@ import (
 	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 	"github.com/openshift/operator-custom-metrics/pkg/metrics"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	"github.com/spf13/pflag"
 	clientGoScheme "k8s.io/client-go/kubernetes/scheme"
 	kubeRest "k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,14 +32,6 @@ var (
 )
 
 func main() {
-	// Add the zap logger flag set to the CLI. The flag set must
-	// be added before calling pflag.Parse().
-	pflag.CommandLine.AddFlagSet(zap.FlagSet())
-
-	// Add flags registered by imported packages (e.g. glog and
-	// controller-runtime)
-	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
-	pflag.Parse()
 	logf.SetLogger(zap.Logger())
 
 	// creates the in-cluster config
