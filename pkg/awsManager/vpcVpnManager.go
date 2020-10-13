@@ -80,61 +80,61 @@ func DeleteVpcInstances(client clientpkg.Client, vpcToBeDeleted []*string, logge
 			errFlag = true
 		}
 		// clear out all ELB
-		err = deleteELB(client, vpcID, logger)
+		err = DeleteELB(client, vpcID, logger)
 		if err != nil {
 			logger.Error(err, "Failed to delete ELBs")
 			errFlag = true
 		}
 		// clear out all network load balancer
-		err = deleteNetworkLoadBalancer(client, vpcID, logger)
+		err = DeleteNetworkLoadBalancer(client, vpcID, logger)
 		if err != nil {
 			logger.Error(err, "Failed to delete Network Load Balancers")
 			errFlag = true
 		}
 		// delete NAT gateway
-		err = deleteNatgateway(client, vpcID, logger)
+		err = DeleteNatgateway(client, vpcID, logger)
 		if err != nil {
 			logger.Error(err, "Failed to delete Nat Gateway")
 			errFlag = true
 		}
 		// detach and delete network interface
-		err = detachAndDeleteNetworkInterface(client, vpcID, logger)
+		err = DetachAndDeleteNetworkInterface(client, vpcID, logger)
 		if err != nil {
 			logger.Error(err, "Failed to detach and delete Network Interface")
 			errFlag = true
 		}
 		//detach any internet gateway , and delete it
-		err = deleteGateway(client, vpcID, logger)
+		err = DeleteGateway(client, vpcID, logger)
 		if err != nil {
 			logger.Error(err, "Failed to delete Gateway")
 			errFlag = true
 		}
 		//detach VPN gateway
-		err = detachVpnGateway(client, vpcID, logger)
+		err = DetachVpnGateway(client, vpcID, logger)
 		if err != nil {
 			logger.Error(err, "Failed to detach VPN Gateway")
 			errFlag = true
 		}
 		//cleaning network ACL
-		err = deleteNetworkAcl(client, vpcID, logger)
+		err = DeleteNetworkAcl(client, vpcID, logger)
 		if err != nil {
 			logger.Error(err, "Failed to delete Network ACL")
 			errFlag = true
 		}
 		//now cleaning route tables
-		err = deleteRouteTables(client, vpcID, logger)
+		err = DeleteRouteTables(client, vpcID, logger)
 		if err != nil {
 			logger.Error(err, "Failed to delete Route Tables")
 			errFlag = true
 		}
 		// now cleaning subnets associated with that vpc id
-		err = deleteSubnetsForVPC(client, vpcID, logger)
+		err = DeleteSubnetsForVPC(client, vpcID, logger)
 		if err != nil {
 			logger.Error(err, "Failed to delete Subnet for VPCs")
 			errFlag = true
 		}
 		//now cleaning security groups
-		err = deleteSecurityGroups(client, vpcID, logger)
+		err = DeleteSecurityGroups(client, vpcID, logger)
 		if err != nil {
 			logger.Error(err, "Failed to delete security groups")
 			errFlag = true
@@ -154,7 +154,7 @@ func DeleteVpcInstances(client clientpkg.Client, vpcToBeDeleted []*string, logge
 	return nil
 }
 
-func deleteELB(client clientpkg.Client, vpcID *string, logger logr.Logger) error {
+func DeleteELB(client clientpkg.Client, vpcID *string, logger logr.Logger) error {
 	var marker *string
 
 	for {
@@ -182,7 +182,7 @@ func deleteELB(client clientpkg.Client, vpcID *string, logger logr.Logger) error
 	return nil
 }
 
-func deleteNatgateway(client clientpkg.Client, vpcID *string, logger logr.Logger) error {
+func DeleteNatgateway(client clientpkg.Client, vpcID *string, logger logr.Logger) error {
 	var token *string
 
 	for {
@@ -209,7 +209,7 @@ func deleteNatgateway(client clientpkg.Client, vpcID *string, logger logr.Logger
 	return nil
 }
 
-func deleteNetworkLoadBalancer(client clientpkg.Client, vpcID *string, logger logr.Logger) error {
+func DeleteNetworkLoadBalancer(client clientpkg.Client, vpcID *string, logger logr.Logger) error {
 	var marker *string
 
 	for {
@@ -236,7 +236,7 @@ func deleteNetworkLoadBalancer(client clientpkg.Client, vpcID *string, logger lo
 	return nil
 }
 
-func detachAndDeleteNetworkInterface(client clientpkg.Client, vpcID *string, logger logr.Logger) error {
+func DetachAndDeleteNetworkInterface(client clientpkg.Client, vpcID *string, logger logr.Logger) error {
 	var token *string
 
 	for {
@@ -272,7 +272,7 @@ func detachAndDeleteNetworkInterface(client clientpkg.Client, vpcID *string, log
 	return nil
 }
 
-func deleteGateway(client clientpkg.Client, vpcID *string, logger logr.Logger) error {
+func DeleteGateway(client clientpkg.Client, vpcID *string, logger logr.Logger) error {
 	var token *string
 
 	for {
@@ -308,7 +308,7 @@ func deleteGateway(client clientpkg.Client, vpcID *string, logger logr.Logger) e
 	return nil
 }
 
-func deleteSubnetsForVPC(client clientpkg.Client, vpcId *string, logger logr.Logger) error {
+func DeleteSubnetsForVPC(client clientpkg.Client, vpcId *string, logger logr.Logger) error {
 	var token *string
 
 	for {
@@ -336,7 +336,7 @@ func deleteSubnetsForVPC(client clientpkg.Client, vpcId *string, logger logr.Log
 	return nil
 }
 
-func deleteRouteTables(client clientpkg.Client, vpcId *string, logger logr.Logger) error {
+func DeleteRouteTables(client clientpkg.Client, vpcId *string, logger logr.Logger) error {
 	var token *string
 
 	for {
@@ -378,7 +378,7 @@ func deleteRouteTables(client clientpkg.Client, vpcId *string, logger logr.Logge
 	return nil
 }
 
-func deleteNetworkAcl(client clientpkg.Client, vpcId *string, logger logr.Logger) error {
+func DeleteNetworkAcl(client clientpkg.Client, vpcId *string, logger logr.Logger) error {
 
 	var token *string
 
@@ -408,7 +408,7 @@ func deleteNetworkAcl(client clientpkg.Client, vpcId *string, logger logr.Logger
 	return nil
 }
 
-func deleteSecurityGroups(client clientpkg.Client, vpcId *string, logger logr.Logger) error {
+func DeleteSecurityGroups(client clientpkg.Client, vpcId *string, logger logr.Logger) error {
 
 	var token *string
 
@@ -506,7 +506,7 @@ func DeleteVpnConnections(client clientpkg.Client, logger logr.Logger) error {
 
 }
 
-func detachVpnGateway(client clientpkg.Client, vpcId *string, logger logr.Logger) error {
+func DetachVpnGateway(client clientpkg.Client, vpcId *string, logger logr.Logger) error {
 
 	// does not require pagination
 	vpnGatewayList, err := client.DescribeVpnGateways(&ec2.DescribeVpnGatewaysInput{})

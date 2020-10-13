@@ -86,12 +86,12 @@ func main() {
 
 		for _, account := range accountCRList {
 			logger := log.WithValues("AccountName", account.Name, "AccountID", account.Spec.AwsAccountID)
-
+			logger.Info("New Account being shredder") // Usefull for keeping track of when work begins on an account
 			// assuming roles for the given AccountID
 			RoleArnParameter := "arn:aws:iam::" + account.Spec.AwsAccountID + ":role/OrganizationAccountAccessRole"
 			assumedRole, err := awsClient.AssumeRole(&sts.AssumeRoleInput{RoleArn: aws.String(RoleArnParameter), RoleSessionName: aws.String(sessionName)})
 			if err != nil {
-				logger.Error(err, "Failed to assume necessary account role")
+				logger.Error(err, "Failed to assume necessary account role", RoleArnParameter)
 				// need continue , or else the next line will throw an error ( non existing pointer being deferenced)
 				// hence moving on to next element
 				continue
@@ -105,7 +105,7 @@ func main() {
 				logger = log.WithValues("AccountName", account.Name, "AccountID", account.Spec.AwsAccountID, "Region", region)
 				assumedRoleClient, err := clientpkg.NewClient(assumedAccessKey, assumedSecretKey, assumedSessionToken, region)
 				if err != nil {
-					logger.Error(err, "Failed to initialize new client")
+					logger.Error(err, "Failed to initialize new AWS client")
 				}
 
 				awsManager.CleanS3Instances(assumedRoleClient, logger)

@@ -20,7 +20,7 @@ func ListEc2InstancesForDeletion(client clientpkg.Client, logger logr.Logger) []
 	for {
 		ec2Descriptions, err := client.DescribeInstances(&ec2.DescribeInstancesInput{NextToken: aws.String(token)})
 		if err != nil {
-			logger.Error(err, "Failed to retrieve ec2 descriptions")
+			logger.Error(err, "Failed to retrieve EC2 descriptions")
 		}
 
 		// nested for loop to read the tags , as it is a part of structure inside a structure output. Refer : https://pkg.go.dev/github.com/aws/aws-sdk-go/service/ec2?tab=doc#DescribeInstancesOutput
@@ -28,6 +28,7 @@ func ListEc2InstancesForDeletion(client clientpkg.Client, logger logr.Logger) []
 			for _, instance := range reservation.Instances {
 				for _, tag := range instance.Tags {
 
+					// If an EC2 instance matches the following conditions, store it for deletion
 					if strings.HasPrefix(*tag.Key, "kubernetes.io") && (*instance.State.Code != 48) {
 						EC2InstancesToBeDeleted = append(EC2InstancesToBeDeleted, instance.InstanceId)
 						break

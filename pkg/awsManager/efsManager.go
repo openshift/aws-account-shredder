@@ -11,12 +11,12 @@ import (
 // CleanEFSMountTargets lists and then deletes listed efs mount targets
 func CleanEFSMountTargets(client clientpkg.Client, logger logr.Logger) error {
 
-	mountTargetToBeDeleted, err := listEFSMountTarget(client)
+	mountTargetToBeDeleted, err := ListEFSMountTarget(client)
 	if err != nil {
 		logger.Error(err, "Failed to get list of EFS mount targets")
 		return err
 	}
-	err = deleteEFSMountTarget(client, mountTargetToBeDeleted, logger)
+	err = DeleteEFSMountTarget(client, mountTargetToBeDeleted, logger)
 	if err != nil {
 		logger.Error(err, "Failed to delete mount targets")
 		return err
@@ -26,7 +26,7 @@ func CleanEFSMountTargets(client clientpkg.Client, logger logr.Logger) error {
 	return nil
 }
 
-func listEFSMountTarget(client clientpkg.Client) ([]*string, error) {
+func ListEFSMountTarget(client clientpkg.Client) ([]*string, error) {
 
 	var marker *string
 	var mountTargetsToBeDeleted []*string
@@ -52,7 +52,7 @@ func listEFSMountTarget(client clientpkg.Client) ([]*string, error) {
 
 }
 
-func deleteEFSMountTarget(client clientpkg.Client, mountTargetToBeDeleted []*string, logger logr.Logger) error {
+func DeleteEFSMountTarget(client clientpkg.Client, mountTargetToBeDeleted []*string, logger logr.Logger) error {
 
 	var mountTargetNotDeleted []*string
 
@@ -78,12 +78,12 @@ func deleteEFSMountTarget(client clientpkg.Client, mountTargetToBeDeleted []*str
 // CleanEFS lists and removes EFSs
 func CleanEFS(client clientpkg.Client, logger logr.Logger) error {
 
-	fileSystemToBeDeleted, err := listEFS(client, logger)
+	fileSystemToBeDeleted, err := ListEFS(client, logger)
 	if err != nil {
 		logger.Error(err, "Failed to list EFS")
 		return err
 	}
-	err = deleteEFS(client, fileSystemToBeDeleted, logger)
+	err = DeleteEFS(client, fileSystemToBeDeleted, logger)
 	if err != nil {
 		logger.Error(err, "Failed to delete file systems")
 		return err
@@ -93,7 +93,7 @@ func CleanEFS(client clientpkg.Client, logger logr.Logger) error {
 	return nil
 }
 
-func listEFS(client clientpkg.Client, logger logr.Logger) ([]*string, error) {
+func ListEFS(client clientpkg.Client, logger logr.Logger) ([]*string, error) {
 
 	var marker *string
 	var filesystemToBeDeleted []*string
@@ -120,7 +120,7 @@ func listEFS(client clientpkg.Client, logger logr.Logger) ([]*string, error) {
 	return filesystemToBeDeleted, nil
 }
 
-func deleteEFS(client clientpkg.Client, fileSystemToBeDeleted []*string, logger logr.Logger) error {
+func DeleteEFS(client clientpkg.Client, fileSystemToBeDeleted []*string, logger logr.Logger) error {
 
 	var fileSystemNotDeleted []*string
 

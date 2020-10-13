@@ -65,7 +65,7 @@ func DeleteEbsSnapshots(client clientpkg.Client, ebsSnapshotsToBeDeleted []*stri
 	return nil
 }
 
-func listVolumeForDeletion(client clientpkg.Client, logger logr.Logger) []*string {
+func ListVolumeForDeletion(client clientpkg.Client, logger logr.Logger) []*string {
 
 	var token *string
 	var ebsVolumesToBeDeleted []*string
@@ -93,7 +93,7 @@ func listVolumeForDeletion(client clientpkg.Client, logger logr.Logger) []*strin
 	return ebsVolumesToBeDeleted
 }
 
-func deleteEbsVolumes(client clientpkg.Client, ebsVolumesToBeDeleted []*string, logger logr.Logger) error {
+func DeleteEbsVolumes(client clientpkg.Client, ebsVolumesToBeDeleted []*string, logger logr.Logger) error {
 
 	if ebsVolumesToBeDeleted == nil {
 		return nil
@@ -129,8 +129,8 @@ func CleanEbsSnapshots(client clientpkg.Client, logger logr.Logger) error {
 
 // CleanEbsVolumes lists and deletes EBS volumes
 func CleanEbsVolumes(client clientpkg.Client, logger logr.Logger) error {
-	ebsVolumeToBeDeleted := listVolumeForDeletion(client, logger)
-	err := deleteEbsVolumes(client, ebsVolumeToBeDeleted, logger)
+	ebsVolumeToBeDeleted := ListVolumeForDeletion(client, logger)
+	err := DeleteEbsVolumes(client, ebsVolumeToBeDeleted, logger)
 	if err != nil {
 		logger.Error(err, "Failed to delete EBS volumes")
 		return err
