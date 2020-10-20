@@ -28,11 +28,15 @@ replace (
 
 require (
 	github.com/aws/aws-sdk-go v1.31.13
+	github.com/go-logr/logr v0.1.0
 	github.com/golang/mock v1.4.3
 	github.com/openshift/api v3.9.1-0.20190424152011-77b8897ec79a+incompatible
 	github.com/openshift/aws-account-operator v0.0.0-20200610163429-768659a7cd0c
 	github.com/openshift/operator-custom-metrics v0.3.0
+	github.com/operator-framework/operator-sdk v0.12.0
 	github.com/prometheus/client_golang v1.7.1
+	github.com/spf13/pflag v1.0.5
+	go.uber.org/zap v1.10.0
 	k8s.io/api v0.18.2
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v12.0.0+incompatible

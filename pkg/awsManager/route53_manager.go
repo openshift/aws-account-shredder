@@ -2,15 +2,16 @@ package awsManager
 
 import (
 	"errors"
-	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/go-logr/logr"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
 )
 
 // source : https://github.com/openshift/aws-account-operator/blob/master/pkg/controller/accountclaim/reuse.go#L321
-
-func CleanUpAwsRoute53(client clientpkg.Client) error {
+// CleanUpAwsRoute53 cleans up awsRoute53
+func CleanUpAwsRoute53(client clientpkg.Client, logger logr.Logger) error {
 
 	var nextZoneMarker *string
 	var errFlag bool = false
@@ -20,7 +21,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 		// Get list of hosted zones by page
 		hostedZonesOutput, err := client.ListHostedZones(&route53.ListHostedZonesInput{Marker: nextZoneMarker})
 		if err != nil {
-			fmt.Println("ERROR: ", err)
+			logger.Error(err, "Failed to retrieve hosted zones")
 			// have to return here, or else invalid pointer reference will occur
 			return err
 		}
@@ -33,7 +34,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 			for {
 				recordSet, listRecordsError := client.ListResourceRecordSets(&route53.ListResourceRecordSetsInput{HostedZoneId: zone.Id, StartRecordName: nextRecordName})
 				if listRecordsError != nil {
-					fmt.Println("Failed to list Record sets for hosted zone ", *zone.Name)
+					logger.Error(listRecordsError, "Failed to list Record sets for hosted zone", *zone.Name)
 					errFlag = true
 				}
 
@@ -53,7 +54,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 				if changeBatch.Changes != nil {
 					_, changeErr := client.ChangeResourceRecordSets(&route53.ChangeResourceRecordSetsInput{HostedZoneId: zone.Id, ChangeBatch: changeBatch})
 					if changeErr != nil {
-						fmt.Println("Failed to delete record sets for hosted zone ", *zone.Name)
+						logger.Error(changeErr, "Failed to delete record sets for hosted zone", *zone.Name)
 						errFlag = true
 					}
 				}
@@ -68,8 +69,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 
 			_, deleteError := client.DeleteHostedZone(&route53.DeleteHostedZoneInput{Id: zone.Id})
 			if deleteError != nil {
-				fmt.Println("ERROR:", err)
-				fmt.Println("ERROR: failed to delete HostedZone", zone.Id)
+				logger.Error(err, "failed to delete HostedZone", zone.Id)
 				errFlag = true
 			}
 		}
@@ -84,7 +84,7 @@ func CleanUpAwsRoute53(client clientpkg.Client) error {
 	if errFlag == true {
 		return errors.New("ERROR")
 	} else {
-		fmt.Println("Route53 cleanup finished successfully")
+		logger.Info("Route53 cleanup finished successfully")
 		return nil
 	}
 }

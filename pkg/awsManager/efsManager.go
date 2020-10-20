@@ -2,27 +2,31 @@ package awsManager
 
 import (
 	"errors"
-	"fmt"
+
 	"github.com/aws/aws-sdk-go/service/efs"
+	"github.com/go-logr/logr"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
 )
 
-func CleanEFSMountTargets(client clientpkg.Client) error {
+// CleanEFSMountTargets lists and then deletes listed efs mount targets
+func CleanEFSMountTargets(client clientpkg.Client, logger logr.Logger) error {
 
-	mountTargetToBeDeleted, err := listEFSMountTarget(client)
+	mountTargetToBeDeleted, err := ListEFSMountTarget(client)
 	if err != nil {
+		logger.Error(err, "Failed to get list of EFS mount targets")
 		return err
 	}
-	err = deleteEFSMountTarget(client, mountTargetToBeDeleted)
+	err = DeleteEFSMountTarget(client, mountTargetToBeDeleted, logger)
 	if err != nil {
+		logger.Error(err, "Failed to delete mount targets")
 		return err
 	}
 
-	fmt.Print("Mount targets removed for this region")
+	logger.Info("Mount targets removed for this region")
 	return nil
 }
 
-func listEFSMountTarget(client clientpkg.Client) ([]*string, error) {
+func ListEFSMountTarget(client clientpkg.Client) ([]*string, error) {
 
 	var marker *string
 	var mountTargetsToBeDeleted []*string
@@ -30,7 +34,6 @@ func listEFSMountTarget(client clientpkg.Client) ([]*string, error) {
 	for {
 		efsMounts, err := client.DescribeMountTargets(&efs.DescribeMountTargetsInput{Marker: marker})
 		if err != nil {
-			fmt.Println("Can not list the mount target for this region")
 			return nil, err
 		}
 
@@ -49,7 +52,7 @@ func listEFSMountTarget(client clientpkg.Client) ([]*string, error) {
 
 }
 
-func deleteEFSMountTarget(client clientpkg.Client, mountTargetToBeDeleted []*string) error {
+func DeleteEFSMountTarget(client clientpkg.Client, mountTargetToBeDeleted []*string, logger logr.Logger) error {
 
 	var mountTargetNotDeleted []*string
 
@@ -60,34 +63,37 @@ func deleteEFSMountTarget(client clientpkg.Client, mountTargetToBeDeleted []*str
 	for _, mountTarget := range mountTargetToBeDeleted {
 		_, err := client.DeleteMountTarget(&efs.DeleteMountTargetInput{MountTargetId: mountTarget})
 		if err != nil {
-			fmt.Print("Unable to remove the mount-target", *mountTarget)
+			logger.Error(err, "Unable to remove the mount-target", *mountTarget)
 			mountTargetNotDeleted = append(mountTargetNotDeleted, mountTarget)
 		}
 	}
 
 	if mountTargetNotDeleted != nil {
-		return errors.New("not all mount targets were removed")
+		return errors.New("FailedToRemoveAllMountTargets")
 	}
 
 	return nil
 }
 
-func CleanEFS(client clientpkg.Client) error {
+// CleanEFS lists and removes EFSs
+func CleanEFS(client clientpkg.Client, logger logr.Logger) error {
 
-	fileSystemToBeDeleted, err := listEFS(client)
+	fileSystemToBeDeleted, err := ListEFS(client, logger)
 	if err != nil {
+		logger.Error(err, "Failed to list EFS")
 		return err
 	}
-	err = deleteEFS(client, fileSystemToBeDeleted)
+	err = DeleteEFS(client, fileSystemToBeDeleted, logger)
 	if err != nil {
+		logger.Error(err, "Failed to delete file systems")
 		return err
 	}
 
-	fmt.Print("all EFS removed for this region")
+	logger.Info("all EFS removed for this region")
 	return nil
 }
 
-func listEFS(client clientpkg.Client) ([]*string, error) {
+func ListEFS(client clientpkg.Client, logger logr.Logger) ([]*string, error) {
 
 	var marker *string
 	var filesystemToBeDeleted []*string
@@ -95,7 +101,7 @@ func listEFS(client clientpkg.Client) ([]*string, error) {
 	for {
 		fileSystemOutput, err := client.DescribeFileSystems(&efs.DescribeFileSystemsInput{Marker: marker})
 		if err != nil {
-			fmt.Println("Can not list file system for this region")
+			logger.Info("Can not list file system for this region")
 			return nil, err
 		}
 
@@ -114,7 +120,7 @@ func listEFS(client clientpkg.Client) ([]*string, error) {
 	return filesystemToBeDeleted, nil
 }
 
-func deleteEFS(client clientpkg.Client, fileSystemToBeDeleted []*string) error {
+func DeleteEFS(client clientpkg.Client, fileSystemToBeDeleted []*string, logger logr.Logger) error {
 
 	var fileSystemNotDeleted []*string
 
@@ -125,13 +131,13 @@ func deleteEFS(client clientpkg.Client, fileSystemToBeDeleted []*string) error {
 	for _, fileSystem := range fileSystemToBeDeleted {
 		_, err := client.DeleteFileSystem(&efs.DeleteFileSystemInput{FileSystemId: fileSystem})
 		if err != nil {
-			fmt.Print("Unable to remove file system", *fileSystem)
+			logger.Info("Unable to remove file system", *fileSystem)
 			fileSystemNotDeleted = append(fileSystemNotDeleted, fileSystem)
 		}
 	}
 
 	if fileSystemNotDeleted != nil {
-		return errors.New("not all file system were removed")
+		return errors.New("NotAllFileSystemsRemoved")
 	}
 
 	return nil
