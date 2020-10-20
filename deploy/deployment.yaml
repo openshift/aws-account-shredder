@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: aws-account-shredder
   name: aws-account-shredder
   labels:
     name: aws-account-shredder
@@ -20,7 +21,7 @@ spec:
           image: quay.io/app-sre/aws-account-shredder:latest
           imagePullPolicy: Always
           resources:
-            requestes:
+            requests:
               memory: "100Mi"
             limits:
               memory: "2048Mi"
