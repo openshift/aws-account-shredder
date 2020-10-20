@@ -14,6 +14,7 @@ import (
 	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 	"github.com/openshift/operator-custom-metrics/pkg/metrics"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
+	"github.com/prometheus/client_golang/prometheus"
 	clientGoScheme "k8s.io/client-go/kubernetes/scheme"
 	kubeRest "k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -54,8 +55,12 @@ func main() {
 	}
 
 	//Create localMetrics endpoint and register localMetrics
+	var collectors = []prometheus.Collector{}
+	for _, collector := range localMetrics.MetricsList {
+		collectors = append(collectors, collector)
+	}
 	metricsServer := metrics.NewBuilder().WithPort(metricsPort).WithPath(metricsPath).
-		WithCollectors(localMetrics.MetricsList).
+		WithCollectors(collectors).
 		WithRoute().
 		WithServiceName("aws-account-shredder").
 		GetConfig()
@@ -63,7 +68,6 @@ func main() {
 	// Configure localMetrics if it errors log the error but continue
 	if err := metrics.ConfigureMetrics(context.TODO(), *metricsServer); err != nil {
 		log.Error(err, "Failed to configure metrics")
-
 	}
 
 	//reading the aws-account-shredder-credentials secret
