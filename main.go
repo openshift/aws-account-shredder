@@ -19,6 +19,7 @@ import (
 	kubeRest "k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"time"
 )
 
 const (
@@ -54,19 +55,9 @@ func main() {
 		log.Error(err, "Failed to integrate account CR to scheme")
 	}
 
-	//Create localMetrics endpoint and register localMetrics
-	var collectors = []prometheus.Collector{}
-	for _, collector := range localMetrics.MetricsList {
-		collectors = append(collectors, collector)
-	}
-	metricsServer := metrics.NewBuilder().WithPort(metricsPort).WithPath(metricsPath).
-		WithCollectors(collectors).
-		WithRoute().
-		WithServiceName("aws-account-shredder").
-		GetConfig()
-
-	// Configure localMetrics if it errors log the error but continue
-	if err := metrics.ConfigureMetrics(context.TODO(), *metricsServer); err != nil {
+	// Initialize metrics
+	metricsErr := localMetrics.Initialize(metricsPort, metricsPath)
+	if metricsErr != nil {
 		log.Error(err, "Failed to configure metrics")
 	}
 
@@ -89,13 +80,16 @@ func main() {
 		}
 
 		for _, account := range accountCRList {
+			startTime := time.Now()
 			logger := log.WithValues("AccountName", account.Name, "AccountID", account.Spec.AwsAccountID)
 			logger.Info("New Account being shredder") // Usefull for keeping track of when work begins on an account
+
 			// assuming roles for the given AccountID
 			RoleArnParameter := "arn:aws:iam::" + account.Spec.AwsAccountID + ":role/OrganizationAccountAccessRole"
 			assumedRole, err := awsClient.AssumeRole(&sts.AssumeRoleInput{RoleArn: aws.String(RoleArnParameter), RoleSessionName: aws.String(sessionName)})
 			if err != nil {
 				logger.Error(err, "Failed to assume necessary account role", RoleArnParameter)
+				localMetrics.Metrics.AccountFail.Inc()
 				// need continue , or else the next line will throw an error ( non existing pointer being deferenced)
 				// hence moving on to next element
 				continue
@@ -111,6 +105,8 @@ func main() {
 				assumedRoleClient, err := clientpkg.NewClient(assumedAccessKey, assumedSecretKey, assumedSessionToken, region)
 				if err != nil {
 					logger.Error(err, "Failed to initialize new AWS client")
+					localMetrics.Metrics.AccountFail.Inc()
+					continue
 				}
 				allErrors = append(allErrors, awsManager.CleanS3Instances(assumedRoleClient, logger))
 				allErrors = append(allErrors, awsManager.CleanEc2Instances(assumedRoleClient, logger))
@@ -131,6 +127,9 @@ func main() {
 			if resetAccount {
 				awsv1alpha1.SetAccountStateReady(cli, account)
 			}
+			duration := time.Since(startTime)
+			localMetrics.Metrics.DurationSeconds.Observe(float64(duration * time.Second))
+			localMetrics.Metrics.AccountSuccess.Inc()
 		}
 	}
 }
