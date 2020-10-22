@@ -120,12 +120,13 @@ func main() {
 			for _, err := range allErrors {
 				if err != nil {
 					resetAccount = false
-					localMetrics.Metrics.AccountFail.Inc()
 				}
 			}
 			if resetAccount {
 				awsv1alpha1.SetAccountStateReady(cli, account)
 				localMetrics.Metrics.AccountSuccess.Inc()
+			} else {
+				localMetrics.Metrics.AccountFail.Inc()
 			}
 			duration := time.Since(startTime)
 			localMetrics.Metrics.DurationSeconds.Set(float64(duration / time.Second))
