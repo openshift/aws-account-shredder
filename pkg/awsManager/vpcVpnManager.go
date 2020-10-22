@@ -169,10 +169,10 @@ func DeleteELB(client clientpkg.Client, vpcID *string, logger logr.Logger) error
 				_, err := client.DeleteLoadBalancer(&elb.DeleteLoadBalancerInput{LoadBalancerName: elasticLoadBalancer.LoadBalancerName})
 				if err != nil {
 					logger.Error(err, "Failed to delete ELB", *elasticLoadBalancer.LoadBalancerName)
-					localMetrics.ResourceFail(localMetrics.ElasticLoadBalancer)
+					localMetrics.ResourceFail(localMetrics.ElasticLoadBalancer, client.GetRegion())
 					continue
 				}
-				localMetrics.ResourceSuccess(localMetrics.ElasticLoadBalancer)
+				localMetrics.ResourceSuccess(localMetrics.ElasticLoadBalancer, client.GetRegion())
 			}
 		}
 
@@ -200,10 +200,10 @@ func DeleteNatgateway(client clientpkg.Client, vpcID *string, logger logr.Logger
 				_, err := client.DeleteNatGateway(&ec2.DeleteNatGatewayInput{NatGatewayId: natGateway.NatGatewayId})
 				if err != nil {
 					logger.Error(err, "Failed to delete NAT Gateway", *natGateway.NatGatewayId)
-					localMetrics.ResourceFail(localMetrics.NatGateway)
+					localMetrics.ResourceFail(localMetrics.NatGateway, client.GetRegion())
 					continue
 				}
-				localMetrics.ResourceSuccess(localMetrics.NatGateway)
+				localMetrics.ResourceSuccess(localMetrics.NatGateway, client.GetRegion())
 			}
 		}
 
@@ -230,9 +230,9 @@ func DeleteNetworkLoadBalancer(client clientpkg.Client, vpcID *string, logger lo
 				_, err := client.DeleteLoadBalancer2(&elbv2.DeleteLoadBalancerInput{LoadBalancerArn: networkLoadBalancer.LoadBalancerArn})
 				if err != nil {
 					logger.Error(err, "Failed to delete Network Load Balancer", *networkLoadBalancer.LoadBalancerName)
-					localMetrics.ResourceFail(localMetrics.NetworkLoadBalancer)
+					localMetrics.ResourceFail(localMetrics.NetworkLoadBalancer, client.GetRegion())
 				} else {
-					localMetrics.ResourceSuccess(localMetrics.NetworkLoadBalancer)
+					localMetrics.ResourceSuccess(localMetrics.NetworkLoadBalancer, client.GetRegion())
 				}
 			}
 		}
@@ -269,9 +269,9 @@ func DetachAndDeleteNetworkInterface(client clientpkg.Client, vpcID *string, log
 				_, err = client.DeleteNetworkInterface(&ec2.DeleteNetworkInterfaceInput{NetworkInterfaceId: networkInterface.NetworkInterfaceId})
 				if err != nil {
 					logger.Error(err, "Failed to delete Network Interface", *networkInterface.NetworkInterfaceId)
-					localMetrics.ResourceFail(localMetrics.NetworkInterface)
+					localMetrics.ResourceFail(localMetrics.NetworkInterface, client.GetRegion())
 				} else {
-					localMetrics.ResourceSuccess(localMetrics.NetworkInterface)
+					localMetrics.ResourceSuccess(localMetrics.NetworkInterface, client.GetRegion())
 				}
 			}
 		}
@@ -305,10 +305,10 @@ func DeleteGateway(client clientpkg.Client, vpcID *string, logger logr.Logger) e
 					_, err = client.DeleteInternetGateway(&ec2.DeleteInternetGatewayInput{InternetGatewayId: gateway.InternetGatewayId})
 					if err != nil {
 						logger.Error(err, "Failed to delete Internet Gateway", *gateway.InternetGatewayId)
-						localMetrics.ResourceFail(localMetrics.InternetGateway)
+						localMetrics.ResourceFail(localMetrics.InternetGateway, client.GetRegion())
 						continue
 					}
-					localMetrics.ResourceSuccess(localMetrics.InternetGateway)
+					localMetrics.ResourceSuccess(localMetrics.InternetGateway, client.GetRegion())
 				}
 			}
 		}
@@ -337,10 +337,10 @@ func DeleteSubnetsForVPC(client clientpkg.Client, vpcId *string, logger logr.Log
 				_, err := client.DeleteSubnet(&ec2.DeleteSubnetInput{SubnetId: subnet.SubnetId})
 				if err != nil {
 					logger.Error(err, "Failed to delete subnet-id", *subnet.SubnetId)
-					localMetrics.ResourceFail(localMetrics.Subnet)
+					localMetrics.ResourceFail(localMetrics.Subnet, client.GetRegion())
 					continue
 				}
-				localMetrics.ResourceSuccess(localMetrics.Subnet)
+				localMetrics.ResourceSuccess(localMetrics.Subnet, client.GetRegion())
 			}
 		}
 
@@ -381,10 +381,10 @@ func DeleteRouteTables(client clientpkg.Client, vpcId *string, logger logr.Logge
 				_, err = client.DeleteRouteTable(&ec2.DeleteRouteTableInput{RouteTableId: routeTable.RouteTableId})
 				if err != nil {
 					logger.Error(err, "Failed to delete route-table", *routeTable.RouteTableId)
-					localMetrics.ResourceFail(localMetrics.RouteTable)
+					localMetrics.ResourceFail(localMetrics.RouteTable, client.GetRegion())
 					continue
 				}
-				localMetrics.ResourceSuccess(localMetrics.RouteTable)
+				localMetrics.ResourceSuccess(localMetrics.RouteTable, client.GetRegion())
 			}
 		}
 
@@ -414,10 +414,10 @@ func DeleteNetworkAcl(client clientpkg.Client, vpcId *string, logger logr.Logger
 				_, err := client.DeleteNetworkAcl(&ec2.DeleteNetworkAclInput{NetworkAclId: acl.NetworkAclId})
 				if err != nil {
 					logger.Error(err, "Failed to delete ACL", *acl.NetworkAclId)
-					localMetrics.ResourceFail(localMetrics.NetworkACL)
+					localMetrics.ResourceFail(localMetrics.NetworkACL, client.GetRegion())
 					continue
 				}
-				localMetrics.ResourceSuccess(localMetrics.NetworkACL)
+				localMetrics.ResourceSuccess(localMetrics.NetworkACL, client.GetRegion())
 			}
 		}
 
@@ -457,10 +457,10 @@ func DeleteSecurityGroups(client clientpkg.Client, vpcId *string, logger logr.Lo
 				_, err = client.DeleteSecurityGroup(&ec2.DeleteSecurityGroupInput{GroupId: securityGroup.GroupId})
 				if err != nil {
 					logger.Error(err, "Failed to delete Security Group", *securityGroup.GroupId)
-					localMetrics.ResourceFail(localMetrics.SecurityGroup)
+					localMetrics.ResourceFail(localMetrics.SecurityGroup, client.GetRegion())
 					continue
 				}
-				localMetrics.ResourceSuccess(localMetrics.SecurityGroup)
+				localMetrics.ResourceSuccess(localMetrics.SecurityGroup, client.GetRegion())
 			}
 		}
 		if securityGroupList.NextToken != nil {
@@ -504,10 +504,10 @@ func DeleteVpcEndpoint(client clientpkg.Client, vpcId *string, logger logr.Logge
 	vpcNotDeleted, err := client.DeleteVpcEndpoints(&ec2.DeleteVpcEndpointsInput{VpcEndpointIds: vpcEndpointToBeDeleted})
 	if err != nil {
 		logger.Error(err, "Failed to delete VPC", vpcNotDeleted.String())
-		localMetrics.ResourceFail(localMetrics.VPC)
+		localMetrics.ResourceFail(localMetrics.VPC, client.GetRegion())
 	} else {
 		logger.Info("ALL VPCs have been deleted successfully")
-		localMetrics.ResourceSuccess(localMetrics.VPC)
+		localMetrics.ResourceSuccess(localMetrics.VPC, client.GetRegion())
 	}
 	return nil
 }
@@ -525,10 +525,10 @@ func DeleteVpnConnections(client clientpkg.Client, logger logr.Logger) error {
 		_, err = client.DeleteVpnConnection(&ec2.DeleteVpnConnectionInput{VpnConnectionId: vpnConnection.VpnConnectionId})
 		if err != nil {
 			logger.Error(err, "Failed to delete VPN connection", *vpnConnection.VpnConnectionId)
-			localMetrics.ResourceFail(localMetrics.VpnConnection)
+			localMetrics.ResourceFail(localMetrics.VpnConnection, client.GetRegion())
 			continue
 		}
-		localMetrics.ResourceSuccess(localMetrics.VpnConnection)
+		localMetrics.ResourceSuccess(localMetrics.VpnConnection, client.GetRegion())
 	}
 
 	return nil
@@ -548,10 +548,10 @@ func DetachVpnGateway(client clientpkg.Client, vpcId *string, logger logr.Logger
 		_, err = client.DetachVpnGateway(&ec2.DetachVpnGatewayInput{VpcId: vpcId, VpnGatewayId: vpnGateway.VpnGatewayId})
 		if err != nil {
 			logger.Error(err, "Failed to detach VPN gateway", *vpnGateway.VpnGatewayId)
-			localMetrics.ResourceFail(localMetrics.VpnGateway)
+			localMetrics.ResourceFail(localMetrics.VpnGateway, client.GetRegion())
 			continue
 		}
-		localMetrics.ResourceFail(localMetrics.VpnGateway)
+		localMetrics.ResourceFail(localMetrics.VpnGateway, client.GetRegion())
 	}
 
 	return nil

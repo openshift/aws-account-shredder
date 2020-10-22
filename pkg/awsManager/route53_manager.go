@@ -57,9 +57,9 @@ func CleanUpAwsRoute53(client clientpkg.Client, logger logr.Logger) error {
 					if changeErr != nil {
 						logger.Error(changeErr, "Failed to delete record sets for hosted zone", *zone.Name)
 						errFlag = true
-						localMetrics.ResourceFail(localMetrics.Route53RecordSet)
+						localMetrics.ResourceFail(localMetrics.Route53RecordSet, client.GetRegion())
 					} else {
-						localMetrics.ResourceSuccess(localMetrics.Route53RecordSet)
+						localMetrics.ResourceSuccess(localMetrics.Route53RecordSet, client.GetRegion())
 					}
 				}
 
@@ -75,10 +75,10 @@ func CleanUpAwsRoute53(client clientpkg.Client, logger logr.Logger) error {
 			if deleteError != nil {
 				logger.Error(err, "failed to delete HostedZone", zone.Id)
 				errFlag = true
-				localMetrics.ResourceFail(localMetrics.Route53HostedZone)
+				localMetrics.ResourceFail(localMetrics.Route53HostedZone, client.GetRegion())
 				continue
 			}
-			localMetrics.ResourceSuccess(localMetrics.Route53HostedZone)
+			localMetrics.ResourceSuccess(localMetrics.Route53HostedZone, client.GetRegion())
 		}
 
 		if *hostedZonesOutput.IsTruncated {

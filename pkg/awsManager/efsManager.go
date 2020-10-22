@@ -66,10 +66,10 @@ func DeleteEFSMountTarget(client clientpkg.Client, mountTargetToBeDeleted []*str
 		if err != nil {
 			logger.Error(err, "Unable to remove the mount-target", *mountTarget)
 			mountTargetNotDeleted = append(mountTargetNotDeleted, mountTarget)
-			localMetrics.ResourceFail(localMetrics.EfsVolume)
+			localMetrics.ResourceFail(localMetrics.EfsVolume, client.GetRegion())
 			continue
 		}
-		localMetrics.ResourceSuccess(localMetrics.EfsVolume)
+		localMetrics.ResourceSuccess(localMetrics.EfsVolume, client.GetRegion())
 	}
 
 	if mountTargetNotDeleted != nil {

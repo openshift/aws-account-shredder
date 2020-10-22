@@ -55,11 +55,11 @@ func Initialize(metricsPort string, metricsPath string) error {
 		ResourceSuccess: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: "aws_account_shredder_resources_success",
 			Help: "Count of specific AWS Resources that have been shredded successfully",
-		}, []string{"resource_type"}),
+		}, []string{"resource_type", "region"}),
 		ResourceFail: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: "aws_account_shredder_resources_failed",
 			Help: "Count of specific AWS Resources that have failed to shred",
-		}, []string{"resource_type"}),
+		}, []string{"resource_type", "region"}),
 		DurationSeconds: prometheus.NewHistogram(prometheus.HistogramOpts{
 			Name:    "aws_account_shredder_duration_seconds",
 			Help:    "Distribution of the number of seconds a AWS Shred operation takes",
@@ -85,9 +85,9 @@ func Initialize(metricsPort string, metricsPath string) error {
 	return metricspkg.ConfigureMetrics(context.TODO(), *metricsServer)
 }
 
-func ResourceSuccess(resourceType string) {
-	Metrics.ResourceSuccess.With(prometheus.Labels{"resource_type": resourceType}).Inc()
+func ResourceSuccess(resourceType string, region string) {
+	Metrics.ResourceSuccess.With(prometheus.Labels{"resource_type": resourceType, "region": region}).Inc()
 }
-func ResourceFail(resourceType string) {
-	Metrics.ResourceFail.With(prometheus.Labels{"resource_type": resourceType}).Inc()
+func ResourceFail(resourceType string, region string) {
+	Metrics.ResourceFail.With(prometheus.Labels{"resource_type": resourceType, "region": region}).Inc()
 }

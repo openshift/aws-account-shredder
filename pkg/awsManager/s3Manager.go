@@ -45,10 +45,10 @@ func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string, lo
 		if err != nil {
 			logger.Error(err, "could not delete bucket", *bucket)
 			s3BucketsNotDeleted = append(s3BucketsNotDeleted, bucket)
-			localMetrics.ResourceFail(localMetrics.S3Bucket)
+			localMetrics.ResourceFail(localMetrics.S3Bucket, client.GetRegion())
 			continue
 		}
-		localMetrics.ResourceSuccess(localMetrics.S3Bucket)
+		localMetrics.ResourceSuccess(localMetrics.S3Bucket, client.GetRegion())
 	}
 
 	if s3BucketsNotDeleted != nil {
