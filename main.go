@@ -129,7 +129,7 @@ func main() {
 				localMetrics.Metrics.AccountFail.Inc()
 			}
 			duration := time.Since(startTime)
-			localMetrics.Metrics.DurationSeconds.Set(float64(duration / time.Second))
+			localMetrics.Metrics.DurationSeconds.Observe(float64(duration / time.Second))
 		}
 	}
 }
