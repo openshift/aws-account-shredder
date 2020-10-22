@@ -9,6 +9,29 @@ import (
 
 var Metrics *MetricsStruct
 
+// Resource Types to be used when reporting Metrics
+const (
+	EbsVolume           = "ebs_volume"
+	EbsSnapshot         = "ebs_snapshot"
+	Ec2Instance         = "ec2_instance"
+	EfsVolume           = "efs_volume"
+	Route53RecordSet    = "route53_record_set"
+	Route53HostedZone   = "route53_hosted_zone"
+	S3Bucket            = "s3_bucket"
+	ElasticLoadBalancer = "elastic_loadbalancer"
+	NatGateway          = "nat_gateway"
+	NetworkLoadBalancer = "network_loadbalancer"
+	NetworkInterface    = "network_interface"
+	InternetGateway     = "internet_gateway"
+	Subnet              = "subnet"
+	RouteTable          = "route_table"
+	NetworkACL          = "network_acl"
+	SecurityGroup       = "security_group"
+	VPC                 = "vpc"
+	VpnConnection       = "vpn_connection"
+	VpnGateway          = "vpn_gateway"
+)
+
 // Creates a Metrics struct
 type MetricsStruct struct {
 	AccountSuccess  prometheus.Counter
@@ -47,8 +70,8 @@ func Initialize(metricsPort string, metricsPath string) error {
 	collectors := []prometheus.Collector{
 		Metrics.AccountSuccess,
 		Metrics.AccountFail,
-		Metrics.ResourceSuccess,
-		Metrics.ResourceFail,
+		*Metrics.ResourceSuccess,
+		*Metrics.ResourceFail,
 		Metrics.DurationSeconds,
 	}
 
@@ -60,4 +83,11 @@ func Initialize(metricsPort string, metricsPath string) error {
 
 	// Configure localMetrics if it errors log the error but continue
 	return metricspkg.ConfigureMetrics(context.TODO(), *metricsServer)
+}
+
+func ResourceSuccess(resourceType string) {
+	Metrics.ResourceSuccess.With(prometheus.Labels{"resource_type": resourceType}).Inc()
+}
+func ResourceFail(resourceType string) {
+	Metrics.ResourceFail.With(prometheus.Labels{"resource_type": resourceType}).Inc()
 }

@@ -3,10 +3,10 @@ package awsManager
 import (
 	"errors"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-logr/logr"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
+	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 )
 
 //ListS3InstancesForDeletion creates a string list of s3 resources that need to be deleted
@@ -43,17 +43,12 @@ func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string, lo
 		// Deleting the bucket
 		_, err := client.DeleteBucket(&s3.DeleteBucketInput{Bucket: bucket})
 		if err != nil {
-			if err, ok := err.(awserr.Error); ok {
-				switch err.Code() {
-				default:
-					logger.Error(err, "could not delete bucket", bucket)
-					s3BucketsNotDeleted = append(s3BucketsNotDeleted, bucket)
-				}
-			} else {
-				logger.Error(err, "could not delete bucket", *bucket)
-				s3BucketsNotDeleted = append(s3BucketsNotDeleted, bucket)
-			}
+			logger.Error(err, "could not delete bucket", *bucket)
+			s3BucketsNotDeleted = append(s3BucketsNotDeleted, bucket)
+			localMetrics.ResourceFail(localMetrics.S3Bucket)
+			continue
 		}
+		localMetrics.ResourceSuccess(localMetrics.S3Bucket)
 	}
 
 	if s3BucketsNotDeleted != nil {

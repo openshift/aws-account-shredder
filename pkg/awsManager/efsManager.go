@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/efs"
 	"github.com/go-logr/logr"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
+	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 )
 
 // CleanEFSMountTargets lists and then deletes listed efs mount targets
@@ -65,7 +66,10 @@ func DeleteEFSMountTarget(client clientpkg.Client, mountTargetToBeDeleted []*str
 		if err != nil {
 			logger.Error(err, "Unable to remove the mount-target", *mountTarget)
 			mountTargetNotDeleted = append(mountTargetNotDeleted, mountTarget)
+			localMetrics.ResourceFail(localMetrics.EfsVolume)
+			continue
 		}
+		localMetrics.ResourceSuccess(localMetrics.EfsVolume)
 	}
 
 	if mountTargetNotDeleted != nil {

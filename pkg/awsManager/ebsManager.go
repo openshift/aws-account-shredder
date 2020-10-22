@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/go-logr/logr"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
+	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 )
 
 //ListEbsSnapshotForDeletion does not delete the Ebs snapshots, this only creates an []* string for the resources that have to deleted
@@ -55,7 +56,10 @@ func DeleteEbsSnapshots(client clientpkg.Client, ebsSnapshotsToBeDeleted []*stri
 		if ebsSnapshotDeleteError != nil {
 			logger.Error(ebsSnapshotDeleteError, "Failed to delete snapshot", *ebsSnapshotID)
 			ebsSnapshotsNotDeleted = append(ebsSnapshotsNotDeleted, ebsSnapshotID)
+			localMetrics.ResourceFail(localMetrics.EbsSnapshot)
+			continue
 		}
+		localMetrics.ResourceSuccess(localMetrics.EbsSnapshot)
 	}
 
 	if ebsSnapshotsNotDeleted != nil {
@@ -105,7 +109,10 @@ func DeleteEbsVolumes(client clientpkg.Client, ebsVolumesToBeDeleted []*string, 
 		if err != nil {
 			logger.Error(err, "Failed to delete Volume", *ebsVolumeID)
 			ebsVolumesNotDeleted = append(ebsVolumesNotDeleted, ebsVolumeID)
+			localMetrics.ResourceFail(localMetrics.EbsVolume)
+			continue
 		}
+		localMetrics.ResourceSuccess(localMetrics.EbsVolume)
 	}
 
 	if ebsVolumesNotDeleted != nil {

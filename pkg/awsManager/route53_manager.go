@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/go-logr/logr"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
+	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 )
 
 // source : https://github.com/openshift/aws-account-operator/blob/master/pkg/controller/accountclaim/reuse.go#L321
@@ -56,6 +57,9 @@ func CleanUpAwsRoute53(client clientpkg.Client, logger logr.Logger) error {
 					if changeErr != nil {
 						logger.Error(changeErr, "Failed to delete record sets for hosted zone", *zone.Name)
 						errFlag = true
+						localMetrics.ResourceFail(localMetrics.Route53RecordSet)
+					} else {
+						localMetrics.ResourceSuccess(localMetrics.Route53RecordSet)
 					}
 				}
 
@@ -71,7 +75,10 @@ func CleanUpAwsRoute53(client clientpkg.Client, logger logr.Logger) error {
 			if deleteError != nil {
 				logger.Error(err, "failed to delete HostedZone", zone.Id)
 				errFlag = true
+				localMetrics.ResourceFail(localMetrics.Route53HostedZone)
+				continue
 			}
+			localMetrics.ResourceSuccess(localMetrics.Route53HostedZone)
 		}
 
 		if *hostedZonesOutput.IsTruncated {

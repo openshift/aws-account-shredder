@@ -12,9 +12,7 @@ import (
 	"github.com/openshift/aws-account-shredder/pkg/awsv1alpha1"
 	"github.com/openshift/aws-account-shredder/pkg/k8sWrapper"
 	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
-	"github.com/openshift/operator-custom-metrics/pkg/metrics"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	"github.com/prometheus/client_golang/prometheus"
 	clientGoScheme "k8s.io/client-go/kubernetes/scheme"
 	kubeRest "k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -82,7 +80,7 @@ func main() {
 		for _, account := range accountCRList {
 			startTime := time.Now()
 			logger := log.WithValues("AccountName", account.Name, "AccountID", account.Spec.AwsAccountID)
-			logger.Info("New Account being shredder") // Usefull for keeping track of when work begins on an account
+			logger.Info("New Account being shredded") // Usefull for keeping track of when work begins on an account
 
 			// assuming roles for the given AccountID
 			RoleArnParameter := "arn:aws:iam::" + account.Spec.AwsAccountID + ":role/OrganizationAccountAccessRole"
@@ -122,14 +120,15 @@ func main() {
 			for _, err := range allErrors {
 				if err != nil {
 					resetAccount = false
+					localMetrics.Metrics.AccountFail.Inc()
 				}
 			}
 			if resetAccount {
 				awsv1alpha1.SetAccountStateReady(cli, account)
+				localMetrics.Metrics.AccountSuccess.Inc()
 			}
 			duration := time.Since(startTime)
-			localMetrics.Metrics.DurationSeconds.Observe(float64(duration * time.Second))
-			localMetrics.Metrics.AccountSuccess.Inc()
+			localMetrics.Metrics.DurationSeconds.Set(float64(duration / time.Second))
 		}
 	}
 }
