@@ -231,9 +231,9 @@ func DeleteNetworkLoadBalancer(client clientpkg.Client, vpcID *string, logger lo
 				if err != nil {
 					logger.Error(err, "Failed to delete Network Load Balancer", *networkLoadBalancer.LoadBalancerName)
 					localMetrics.ResourceFail(localMetrics.NetworkLoadBalancer, client.GetRegion())
-				} else {
-					localMetrics.ResourceSuccess(localMetrics.NetworkLoadBalancer, client.GetRegion())
+					continue
 				}
+				localMetrics.ResourceSuccess(localMetrics.NetworkLoadBalancer, client.GetRegion())
 			}
 		}
 		if networkLoadBalancerList.NextMarker != nil {
@@ -270,9 +270,9 @@ func DetachAndDeleteNetworkInterface(client clientpkg.Client, vpcID *string, log
 				if err != nil {
 					logger.Error(err, "Failed to delete Network Interface", *networkInterface.NetworkInterfaceId)
 					localMetrics.ResourceFail(localMetrics.NetworkInterface, client.GetRegion())
-				} else {
-					localMetrics.ResourceSuccess(localMetrics.NetworkInterface, client.GetRegion())
+					continue
 				}
+				localMetrics.ResourceSuccess(localMetrics.NetworkInterface, client.GetRegion())
 			}
 		}
 		if networkInterfaceList.NextToken != nil {
