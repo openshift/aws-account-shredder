@@ -112,6 +112,8 @@ func main() {
 				allErrors = append(allErrors, awsManager.CleanVpcInstances(assumedRoleClient, logger))
 				allErrors = append(allErrors, awsManager.CleanEbsSnapshots(assumedRoleClient, logger))
 				allErrors = append(allErrors, awsManager.CleanEbsVolumes(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.GetEIPAddress(assumedRoleClient, logger))
+
 			}
 			// After cleaning up every region we set the account state to Ready if no errors were encountered
 			resetAccount := true
