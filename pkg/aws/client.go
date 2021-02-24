@@ -90,9 +90,11 @@ type Client interface {
 	DeleteHostedZone(*route53.DeleteHostedZoneInput) (*route53.DeleteHostedZoneOutput, error)
 	ListResourceRecordSets(*route53.ListResourceRecordSetsInput) (*route53.ListResourceRecordSetsOutput, error)
 	ChangeResourceRecordSets(*route53.ChangeResourceRecordSetsInput) (*route53.ChangeResourceRecordSetsOutput, error)
+	GetRegion() string
 }
 
 type awsClient struct {
+	region        string
 	ec2Client     ec2iface.EC2API
 	stsClient     stsiface.STSAPI
 	s3Client      s3iface.S3API
@@ -315,6 +317,10 @@ func (c *awsClient) ChangeResourceRecordSets(input *route53.ChangeResourceRecord
 	return c.route53client.ChangeResourceRecordSets(input)
 }
 
+func (c *awsClient) GetRegion() string {
+	return c.region
+}
+
 // NewClient creates our client wrapper object for the actual AWS clients we use.
 func NewClient(awsAccessID, awsAccessSecret, token, region string) (Client, error) {
 	awsConfig := &aws.Config{Region: aws.String(region)}
@@ -327,6 +333,7 @@ func NewClient(awsAccessID, awsAccessSecret, token, region string) (Client, erro
 	}
 
 	return &awsClient{
+		region:        region,
 		ec2Client:     ec2.New(s),
 		stsClient:     sts.New(s),
 		s3Client:      s3.New(s),

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/go-logr/logr"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
+	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 )
 
 // ListEc2InstancesForDeletion this lists all the instances that are eligible for deletion based on the tags and stored them in instances to be deleted
@@ -69,8 +70,10 @@ func DeleteEc2Instance(client clientpkg.Client, EC2InstancesToBeDeleted []*strin
 		} else {
 			logger.Error(err, "Failed to delete instances provided", &EC2InstancesToBeDeleted)
 		}
+		localMetrics.ResourceFail(localMetrics.Ec2Instance, client.GetRegion())
 		return errors.New("FailedToDeleteEc2Instance")
 	}
+	localMetrics.ResourceSuccess(localMetrics.Ec2Instance, client.GetRegion())
 	return nil
 }
 

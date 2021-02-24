@@ -28,3 +28,5 @@ spec:
           env:
             - name : OPERATOR_NAME
               value: "aws-account-shredder"
+          ports:
+            - containerPort: 8080
