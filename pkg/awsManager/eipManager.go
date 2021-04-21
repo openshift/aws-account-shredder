@@ -1,8 +1,6 @@
 package awsManager
 
 import (
-	"fmt"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -10,8 +8,8 @@ import (
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
 )
 
-// GetEIPAddress returns EIP addresses
-func GetEIPAddress(client clientpkg.Client, logger logr.Logger) error {
+// CleanEIPAddresses Cleans any hanging EIPAddresses
+func CleanEIPAddresses(client clientpkg.Client, logger logr.Logger) error {
 	result, err := client.DescribeAddresses(&ec2.DescribeAddressesInput{
 		Filters: []*ec2.Filter{
 			{
@@ -22,6 +20,7 @@ func GetEIPAddress(client clientpkg.Client, logger logr.Logger) error {
 	})
 	if err != nil {
 		logger.Error(err, "Unable to get elastic IP address")
+		return err
 	}
 
 	// Release the IP addresses if there are any.
@@ -54,13 +53,4 @@ func realeaseEIPAddress(client clientpkg.Client, logger logr.Logger, allocationI
 	}
 	logger.Info("Successfully released allocation ID", "allocationID", allocationID)
 	return nil
-}
-
-func fmtAddress(addr *ec2.Address) string {
-	out := fmt.Sprintf("IP: %s,  allocation id: %s",
-		aws.StringValue(addr.PublicIp), aws.StringValue(addr.AllocationId))
-	if addr.InstanceId != nil {
-		out += fmt.Sprintf(", instance-id: %s", *addr.InstanceId)
-	}
-	return out
 }
