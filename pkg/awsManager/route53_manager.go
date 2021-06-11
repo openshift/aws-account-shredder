@@ -35,7 +35,7 @@ func CleanUpAwsRoute53(client clientpkg.Client, logger logr.Logger) error {
 			for {
 				recordSet, listRecordsError := client.ListResourceRecordSets(&route53.ListResourceRecordSetsInput{HostedZoneId: zone.Id, StartRecordName: nextRecordName})
 				if listRecordsError != nil {
-					logger.Error(listRecordsError, "Failed to list Record sets for hosted zone", *zone.Name)
+					logger.Error(listRecordsError, "Failed to list Record sets for hosted zone", "Name", *zone.Name)
 					errFlag = true
 				}
 
@@ -55,7 +55,7 @@ func CleanUpAwsRoute53(client clientpkg.Client, logger logr.Logger) error {
 				if changeBatch.Changes != nil {
 					_, changeErr := client.ChangeResourceRecordSets(&route53.ChangeResourceRecordSetsInput{HostedZoneId: zone.Id, ChangeBatch: changeBatch})
 					if changeErr != nil {
-						logger.Error(changeErr, "Failed to delete record sets for hosted zone", *zone.Name)
+						logger.Error(changeErr, "Failed to delete record sets for hosted zone", "Name", *zone.Name)
 						errFlag = true
 						localMetrics.ResourceFail(localMetrics.Route53RecordSet, client.GetRegion())
 					} else {
@@ -73,7 +73,7 @@ func CleanUpAwsRoute53(client clientpkg.Client, logger logr.Logger) error {
 
 			_, deleteError := client.DeleteHostedZone(&route53.DeleteHostedZoneInput{Id: zone.Id})
 			if deleteError != nil {
-				logger.Error(err, "failed to delete HostedZone", zone.Id)
+				logger.Error(err, "failed to delete HostedZone", "ID", zone.Id)
 				errFlag = true
 				localMetrics.ResourceFail(localMetrics.Route53HostedZone, client.GetRegion())
 				continue

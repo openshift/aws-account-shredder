@@ -64,7 +64,7 @@ func DeleteEFSMountTarget(client clientpkg.Client, mountTargetToBeDeleted []*str
 	for _, mountTarget := range mountTargetToBeDeleted {
 		_, err := client.DeleteMountTarget(&efs.DeleteMountTargetInput{MountTargetId: mountTarget})
 		if err != nil {
-			logger.Error(err, "Unable to remove the mount-target", *mountTarget)
+			logger.Error(err, "Unable to remove the mount-target", "ID", *mountTarget)
 			mountTargetNotDeleted = append(mountTargetNotDeleted, mountTarget)
 			localMetrics.ResourceFail(localMetrics.EfsVolume, client.GetRegion())
 			continue
@@ -135,7 +135,7 @@ func DeleteEFS(client clientpkg.Client, fileSystemToBeDeleted []*string, logger 
 	for _, fileSystem := range fileSystemToBeDeleted {
 		_, err := client.DeleteFileSystem(&efs.DeleteFileSystemInput{FileSystemId: fileSystem})
 		if err != nil {
-			logger.Info("Unable to remove file system", *fileSystem)
+			logger.Info("Unable to remove file system", "fileSystem", *fileSystem)
 			fileSystemNotDeleted = append(fileSystemNotDeleted, fileSystem)
 		}
 	}

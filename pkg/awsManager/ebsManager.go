@@ -54,7 +54,7 @@ func DeleteEbsSnapshots(client clientpkg.Client, ebsSnapshotsToBeDeleted []*stri
 
 		_, ebsSnapshotDeleteError := client.DeleteSnapshot(&ec2.DeleteSnapshotInput{SnapshotId: ebsSnapshotID})
 		if ebsSnapshotDeleteError != nil {
-			logger.Error(ebsSnapshotDeleteError, "Failed to delete snapshot", *ebsSnapshotID)
+			logger.Error(ebsSnapshotDeleteError, "Failed to delete snapshot", "ID", *ebsSnapshotID)
 			ebsSnapshotsNotDeleted = append(ebsSnapshotsNotDeleted, ebsSnapshotID)
 			localMetrics.ResourceFail(localMetrics.EbsSnapshot, client.GetRegion())
 			continue
@@ -107,7 +107,7 @@ func DeleteEbsVolumes(client clientpkg.Client, ebsVolumesToBeDeleted []*string, 
 
 		_, err := client.DeleteVolume(&ec2.DeleteVolumeInput{VolumeId: ebsVolumeID})
 		if err != nil {
-			logger.Error(err, "Failed to delete Volume", *ebsVolumeID)
+			logger.Error(err, "Failed to delete Volume", "ID", *ebsVolumeID)
 			ebsVolumesNotDeleted = append(ebsVolumesNotDeleted, ebsVolumeID)
 			localMetrics.ResourceFail(localMetrics.EbsVolume, client.GetRegion())
 			continue

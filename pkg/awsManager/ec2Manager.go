@@ -65,10 +65,10 @@ func DeleteEc2Instance(client clientpkg.Client, EC2InstancesToBeDeleted []*strin
 		if err, ok := err.(awserr.Error); ok {
 			switch err.Code() {
 			default:
-				logger.Error(err, "Failed to delete instances provided", &EC2InstancesToBeDeleted)
+				logger.Error(err, "Failed to delete instances provided", "Instances", &EC2InstancesToBeDeleted)
 			}
 		} else {
-			logger.Error(err, "Failed to delete instances provided", &EC2InstancesToBeDeleted)
+			logger.Error(err, "Failed to delete instances provided", "Instances", &EC2InstancesToBeDeleted)
 		}
 		localMetrics.ResourceFail(localMetrics.Ec2Instance, client.GetRegion())
 		return errors.New("FailedToDeleteEc2Instance")
