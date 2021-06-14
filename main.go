@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sts"
 	routev1 "github.com/openshift/api/route/v1"
@@ -17,7 +19,6 @@ import (
 	kubeRest "k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"time"
 )
 
 const (
@@ -112,6 +113,8 @@ func main() {
 				allErrors = append(allErrors, awsManager.CleanVpcInstances(assumedRoleClient, logger))
 				allErrors = append(allErrors, awsManager.CleanEbsSnapshots(assumedRoleClient, logger))
 				allErrors = append(allErrors, awsManager.CleanEbsVolumes(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.CleanEIPAddresses(assumedRoleClient, logger))
+
 			}
 			// After cleaning up every region we set the account state to Ready if no errors were encountered
 			resetAccount := true

@@ -1,29 +1,34 @@
 package awsManager
 
 import (
+	"errors"
+	"testing"
+
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/efs"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"testing"
+	"github.com/go-logr/logr"
 
-	"errors"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/golang/mock/gomock"
 	"github.com/openshift/aws-account-shredder/pkg/mock"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 type mockSuite struct {
 	mockCtrl      *gomock.Controller
 	mockAWSClient *mock.MockClient
+	Logger        logr.Logger
 }
 
 // setupDefaultMocks is an easy way to setup all of the default mocks
 func setupDefaultMocks(t *testing.T) *mockSuite {
 	mocks := &mockSuite{
 		mockCtrl: gomock.NewController(t),
+		Logger:   logf.Log.WithName("shredder_mock_logger"),
 	}
 
 	mocks.mockAWSClient = mock.NewMockClient(mocks.mockCtrl)
@@ -49,7 +54,6 @@ func TestDeleteS3Buckets(t *testing.T) {
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.BatchDeleteBucketObjects(gomock.Any()).Return(nil).AnyTimes()
 				r.DeleteBucket(gomock.Any()).Return(&s3.DeleteBucketOutput{}, errors.New("ERROR")).AnyTimes()
-
 			},
 			listOfBuckets: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected: true,
@@ -69,7 +73,7 @@ func TestDeleteS3Buckets(t *testing.T) {
 			mocks := setupDefaultMocks(t)
 			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
 
-			mockExecution := DeleteS3Buckets(mocks.mockAWSClient, tc.listOfBuckets)
+			mockExecution := DeleteS3Buckets(mocks.mockAWSClient, tc.listOfBuckets, mocks.Logger)
 
 			if mockExecution != nil && tc.errorExpected == false {
 				t.Errorf(tc.title, "Failed")
@@ -114,7 +118,7 @@ func TestDeleteEc2Instance(t *testing.T) {
 			mocks := setupDefaultMocks(t)
 			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
 
-			mockExecution := DeleteEc2Instance(mocks.mockAWSClient, tc.listOfInstances)
+			mockExecution := DeleteEc2Instance(mocks.mockAWSClient, tc.listOfInstances, mocks.Logger)
 
 			if mockExecution != nil && tc.errorExpected == false {
 				t.Errorf(tc.title, "Failed")
@@ -155,7 +159,7 @@ func TestCleanUpAwsRoute53(t *testing.T) {
 			mocks := setupDefaultMocks(t)
 			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
 
-			mockExecution := CleanUpAwsRoute53(mocks.mockAWSClient)
+			mockExecution := CleanUpAwsRoute53(mocks.mockAWSClient, mocks.Logger)
 
 			if mockExecution != nil && tc.errorExpected == false {
 				t.Errorf(tc.title, "Failed")
@@ -244,7 +248,7 @@ func TestDeleteVpcInstacnes(t *testing.T) {
 			mocks := setupDefaultMocks(t)
 			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
 
-			mockExecution := DeleteVpcInstances(mocks.mockAWSClient, tc.listOfInstances)
+			mockExecution := DeleteVpcInstances(mocks.mockAWSClient, tc.listOfInstances, mocks.Logger)
 
 			if mockExecution != nil && tc.errorExpected == false {
 				t.Errorf(tc.title, "Failed")
@@ -290,7 +294,7 @@ func TestDeleteEbsSnapshot(t *testing.T) {
 			mocks := setupDefaultMocks(t)
 			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
 
-			mockExecution := DeleteEbsSnapshots(mocks.mockAWSClient, tc.listOfEbsSnapshots)
+			mockExecution := DeleteEbsSnapshots(mocks.mockAWSClient, tc.listOfEbsSnapshots, mocks.Logger)
 
 			if mockExecution != nil && tc.errorExpected == false {
 				t.Errorf(tc.title, "Failed")
@@ -336,7 +340,7 @@ func TestDeleteEbsVolumes(t *testing.T) {
 			mocks := setupDefaultMocks(t)
 			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
 
-			mockExecution := DeleteEbsVolumes(mocks.mockAWSClient, tc.listOfEbsVolumes)
+			mockExecution := DeleteEbsVolumes(mocks.mockAWSClient, tc.listOfEbsVolumes, mocks.Logger)
 
 			if mockExecution != nil && tc.errorExpected == false {
 				t.Errorf(tc.title, "Failed")
@@ -381,7 +385,7 @@ func TestDeleteEFS(t *testing.T) {
 			mocks := setupDefaultMocks(t)
 			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
 
-			mockExecution := deleteEFS(mocks.mockAWSClient, tc.fileSystemToBeDeleted)
+			mockExecution := DeleteEFS(mocks.mockAWSClient, tc.fileSystemToBeDeleted, mocks.Logger)
 
 			if mockExecution != nil && tc.errorExpected == false {
 				t.Errorf(tc.title, "Failed")
@@ -426,9 +430,78 @@ func TestDeleteEFSMountTarget(t *testing.T) {
 			mocks := setupDefaultMocks(t)
 			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
 
-			mockExecution := deleteEFSMountTarget(mocks.mockAWSClient, tc.mountTargetToBeDeleted)
+			mockExecution := DeleteEFSMountTarget(mocks.mockAWSClient, tc.mountTargetToBeDeleted, mocks.Logger)
 
 			if mockExecution != nil && tc.errorExpected == false {
+				t.Errorf(tc.title, "Failed")
+			}
+		})
+	}
+}
+
+func TestCleanEIPAddresses(t *testing.T) {
+
+	failedToRetrieveEIPErr := errors.New("FailedToRetrieveEIP")
+	failedToReleaseAddressErr := errors.New("FailedToReleaseAddress")
+
+	testCases := []struct {
+		title         string
+		setupAWSMock  func(r *mock.MockClientMockRecorder)
+		eipAddresses  []*string
+		errorExpected error
+	}{
+		{
+			title: "No EIP Address",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DescribeAddresses(gomock.Any()).Return(&ec2.DescribeAddressesOutput{}, nil).AnyTimes()
+			},
+			errorExpected: nil,
+		},
+		{
+			title: "EIP Address No Error",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DescribeAddresses(gomock.Any()).Return(&ec2.DescribeAddressesOutput{Addresses: []*ec2.Address{
+					{
+						AllocationId: aws.String("test-id-one"),
+					},
+					{
+						AllocationId: aws.String("test-id-two"),
+					},
+				}}, nil).AnyTimes()
+				r.ReleaseAddress(gomock.Any()).Return(&ec2.ReleaseAddressOutput{}, nil).AnyTimes()
+			},
+			errorExpected: nil,
+		},
+		{
+			title: "Get EIP Addresses Error",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DescribeAddresses(gomock.Any()).Return(&ec2.DescribeAddressesOutput{}, failedToRetrieveEIPErr).AnyTimes()
+			},
+			errorExpected: failedToRetrieveEIPErr,
+		},
+		{
+			title: "Release Address Error",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.DescribeAddresses(gomock.Any()).Return(&ec2.DescribeAddressesOutput{Addresses: []*ec2.Address{
+					{
+						AllocationId: aws.String("test-id-one"),
+					},
+					{
+						AllocationId: aws.String("test-id-two"),
+					},
+				}}, nil).AnyTimes()
+				r.ReleaseAddress(gomock.Any()).Return(&ec2.ReleaseAddressOutput{}, failedToReleaseAddressErr).AnyTimes()
+			},
+			errorExpected: failedToReleaseAddressErr,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			mocks := setupDefaultMocks(t)
+			tc.setupAWSMock(mocks.mockAWSClient.EXPECT())
+			mockExecution := CleanEIPAddresses(mocks.mockAWSClient, mocks.Logger)
+			if mockExecution != tc.errorExpected {
 				t.Errorf(tc.title, "Failed")
 			}
 		})
