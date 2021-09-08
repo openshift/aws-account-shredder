@@ -1,4 +1,9 @@
 # aws-account-shredder
+[![Go Report Card](https://goreportcard.com/badge/github.com/openshift/aws-account-shredder)](https://goreportcard.com/report/github.com/openshift/aws-account-shredder)
+[![GoDoc](https://godoc.org/github.com/openshift/aws-account-shredder?status.svg)](https://pkg.go.dev/mod/github.com/openshift/aws-account-shredder)
+[![License](https://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+
+
 Repository to audit, service, and clean up leftover AWS resources
 
 ## Deploying Shredder Locally
