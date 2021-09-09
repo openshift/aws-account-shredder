@@ -31,11 +31,11 @@ func GetAccountCRsToReset(ctx context.Context, cli client.Client) ([]awsv1alpha1
 }
 
 // SetAccountStateReady sets an account state to Ready
-func SetAccountStateReady(cli client.Client, account awsv1alpha1.Account) error {
-	account.Status.State = "Ready"
+func ResetAccountStatus(cli client.Client, account awsv1alpha1.Account) error {
+	account.Status = awsv1alpha1.AccountStatus{}
 	err := cli.Status().Update(context.TODO(), &account)
 	if err != nil {
-		fmt.Println("Failed to reset account to a \"Ready\" state: ", err)
+		fmt.Println("Failed to reset account status: ", err)
 	}
 	return err
 }
