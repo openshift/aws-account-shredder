@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"time"
 
@@ -80,8 +81,15 @@ func main() {
 
 		for _, account := range accountCRList {
 			startTime := time.Now()
+
 			logger := log.WithValues("AccountName", account.Name, "AccountID", account.Spec.AwsAccountID)
 			logger.Info("New Account being shredded") // Usefull for keeping track of when work begins on an account
+
+			if account.Spec.AwsAccountID == "" {
+				logger.Error(err, fmt.Sprintf("Account %s has no AWS Account ID attached", account.Name))
+				localMetrics.Metrics.AccountFail.Inc()
+				continue
+			}
 
 			// assuming roles for the given AccountID
 			RoleArnParameter := "arn:aws:iam::" + account.Spec.AwsAccountID + ":role/OrganizationAccountAccessRole"
