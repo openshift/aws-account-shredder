@@ -40,6 +40,12 @@ The following steps are for running a shred on a single account.
 
 This is best done without the aws-account-operator running.
 
+In order to create an account CR, you'll need to have the CRD defined:
+```
+cd deploy && curl -O  https://raw.githubusercontent.com/openshift/aws-account-operator/master/deploy/crds/aws.managed.openshift.io_accounts.yaml
+oc apply -f aws.managed.openshift.io_accounts.yaml
+```
+
 Apply the following JSON, changing the Account ID appropriately.  DOUBLE CHECK THAT YOU ARE ADDING THE CORRECT ACCOUNT ID, AS THIS IS A DESTRUCTIVE OPERATION AND YOU CANNOT UNDO
 
 ```json
@@ -73,3 +79,25 @@ Once you set the status of the account to failed, the Shredder should pick it up
 You should be able to follow the logs and watch the shred happen using `oc logs -f [pod name] -n aws-account-shredder`.  Certain objects may not delete on the first attempt through the shredder, but the shredder will continue to run on the account until it is created.
 
 Once you are done with the cleanup, remove the Failed account (otherwise the shredder will infinitely loop over this account).  You can accomplish this with `oc delete -n aws-account-operator aws-shredder-account-delete`
+
+## Testing your changes locally
+
+To test your changes locally, you'll need to have public repository to host the image you are going to build. For the following example we will maintain quay as the registry used.
+
+You'll need to edit the `IMAGE_REPOSITORY` field in `project.mk` to point at your `aws-account-shredder` repo , not that of `app-sre`:
+```
+IMAGE_REPOSITORY?=<your username>
+```
+This is what's used by `standard.mk` when we run `make docker-build`. So now that you're pointing to the correct repo, run:
+```
+make docker-build
+```
+This will build the container image and spit out a tag at the end, now we'll need to push this image up to the repo:
+```
+docker push quay.io/<username>/aws-account-shredder:<tag>
+```
+You'll now need to update `deploy/deployment.yaml` to point at the image you just built:
+```
+image: quay.io/<username>/aws-account-shredder:<image tag>
+```
+Now that you have the your image pushed up and your deployment updated, you can simply apply the deployment to roll out your local test branch.
