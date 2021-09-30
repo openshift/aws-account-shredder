@@ -118,6 +118,8 @@ func main() {
 				allErrors = append(allErrors, awsManager.CleanS3Instances(assumedRoleClient, logger))
 				allErrors = append(allErrors, awsManager.CleanEc2Instances(assumedRoleClient, logger))
 				allErrors = append(allErrors, awsManager.CleanUpAwsRoute53(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.CleanEFSMountTargets(assumedRoleClient, logger))
+				allErrors = append(allErrors, awsManager.CleanEFS(assumedRoleClient, logger))
 				allErrors = append(allErrors, awsManager.CleanVpcInstances(assumedRoleClient, logger))
 				allErrors = append(allErrors, awsManager.CleanEbsSnapshots(assumedRoleClient, logger))
 				allErrors = append(allErrors, awsManager.CleanEbsVolumes(assumedRoleClient, logger))
