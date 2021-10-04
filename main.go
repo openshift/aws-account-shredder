@@ -132,7 +132,7 @@ func main() {
 				}
 			}
 			if resetAccount {
-				awsv1alpha1.SetAccountStateReady(cli, account)
+				awsv1alpha1.ResetAccountStatus(cli, account)
 				localMetrics.Metrics.AccountSuccess.Inc()
 			} else {
 				localMetrics.Metrics.AccountFail.Inc()

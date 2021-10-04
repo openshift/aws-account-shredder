@@ -35,8 +35,6 @@ require (
 	github.com/openshift/operator-custom-metrics v0.3.0
 	github.com/operator-framework/operator-sdk v0.12.0
 	github.com/prometheus/client_golang v1.7.1
-	github.com/spf13/pflag v1.0.5 // indirect
-	go.uber.org/zap v1.10.0 // indirect
 	k8s.io/api v0.18.2
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v12.0.0+incompatible
