@@ -88,7 +88,7 @@ Once you set the status of the account to failed, the Shredder should pick it up
 
 You should be able to follow the logs and watch the shred happen using `oc logs -f [pod name] -n aws-account-shredder`.  Certain objects may not delete on the first attempt through the shredder, but the shredder will continue to run on the account until it is created.
 
-Once you are done with the cleanup, remove the Failed account (otherwise the shredder will infinitely loop over this account).  You can accomplish this with `oc delete -n account aws-account-operator aws-shredder-account-delete`
+Once you are done with the cleanup, remove the Failed account (otherwise the shredder will infinitely loop over this account). You can accomplish this with `oc delete account -n aws-account-operator aws-shredder-account-delete`
 
 ## Testing your changes locally
 
