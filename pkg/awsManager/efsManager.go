@@ -12,7 +12,7 @@ import (
 // CleanEFSMountTargets lists and then deletes listed efs mount targets
 func CleanEFSMountTargets(client clientpkg.Client, logger logr.Logger) error {
 
-	mountTargetToBeDeleted, err := ListEFSMountTarget(client)
+	mountTargetToBeDeleted, err := ListEFSMountTarget(client, logger)
 	if err != nil {
 		logger.Error(err, "Failed to get list of EFS mount targets")
 		return err
@@ -27,13 +27,25 @@ func CleanEFSMountTargets(client clientpkg.Client, logger logr.Logger) error {
 	return nil
 }
 
-func ListEFSMountTarget(client clientpkg.Client) ([]*string, error) {
+func ListEFSMountTarget(client clientpkg.Client, logger logr.Logger) ([]*string, error) {
 
 	var marker *string
 	var mountTargetsToBeDeleted []*string
 
-	for {
-		efsMounts, err := client.DescribeMountTargets(&efs.DescribeMountTargetsInput{Marker: marker})
+	fileSystems, err := ListEFS(client, logger)
+	if err != nil {
+		logger.Info("Can not list file system for this region")
+		return nil, err
+	}
+
+	for _, fs := range fileSystems {
+		efsMounts, err := client.DescribeMountTargets(
+			&efs.DescribeMountTargetsInput{
+				Marker:       marker,
+				FileSystemId: fs,
+			},
+		)
+
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +84,7 @@ func DeleteEFSMountTarget(client clientpkg.Client, mountTargetToBeDeleted []*str
 		localMetrics.ResourceSuccess(localMetrics.EfsVolume, client.GetRegion())
 	}
 
-	if mountTargetNotDeleted != nil {
+	if len(mountTargetNotDeleted) > 0 {
 		return errors.New("FailedToRemoveAllMountTargets")
 	}
 

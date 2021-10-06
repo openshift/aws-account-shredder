@@ -23,3 +23,23 @@ export GOPROXY=https://proxy.golang.org
 .PHONY: docker-build
 docker-build: build
 
+# Helper functions to improve local testing experience
+.PHONY: create-account
+create-account:
+	@oc apply -f myaccount.json
+
+.PHONY: shred-account
+shred-account:
+	@osdctl account set aws-shredder-account-delete --state=Failed
+
+.PHONY: delete-account
+delete-account:
+	@oc delete account -n aws-account-operator aws-shredder-account-delete
+
+.PHONY: get-logs
+get-logs:
+	workflow/get_logs.sh
+
+.PHONY: kill-pod
+kill-pod:
+	workflow/kill_pod.sh

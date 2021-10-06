@@ -14,6 +14,7 @@ import (
 	"github.com/go-logr/logr"
 
 	"github.com/golang/mock/gomock"
+	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 	"github.com/openshift/aws-account-shredder/pkg/mock"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
@@ -35,6 +36,10 @@ func setupDefaultMocks(t *testing.T) *mockSuite {
 	return mocks
 }
 
+func init() {
+	localMetrics.Initialize("", "")
+}
+
 func TestDeleteS3Buckets(t *testing.T) {
 	testCases := []struct {
 		title         string
@@ -54,6 +59,7 @@ func TestDeleteS3Buckets(t *testing.T) {
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.BatchDeleteBucketObjects(gomock.Any()).Return(nil).AnyTimes()
 				r.DeleteBucket(gomock.Any()).Return(&s3.DeleteBucketOutput{}, errors.New("ERROR")).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			listOfBuckets: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected: true,
@@ -62,6 +68,7 @@ func TestDeleteS3Buckets(t *testing.T) {
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.BatchDeleteBucketObjects(gomock.Any()).Return(nil).AnyTimes()
 				r.DeleteBucket(gomock.Any()).Return(&s3.DeleteBucketOutput{}, nil).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			listOfBuckets: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected: false,
@@ -83,6 +90,7 @@ func TestDeleteS3Buckets(t *testing.T) {
 }
 
 func TestDeleteEc2Instance(t *testing.T) {
+
 	testCases := []struct {
 		title           string
 		setupAWSMock    func(r *mock.MockClientMockRecorder)
@@ -100,6 +108,7 @@ func TestDeleteEc2Instance(t *testing.T) {
 			title: "test 2 - Invalid Instances passed",
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.TerminateInstances(gomock.Any()).Return(&ec2.TerminateInstancesOutput{}, errors.New("Error")).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			listOfInstances: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected:   true,
@@ -107,6 +116,7 @@ func TestDeleteEc2Instance(t *testing.T) {
 			title: "test 3 - valid Instances passed",
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.TerminateInstances(gomock.Any()).Return(&ec2.TerminateInstancesOutput{}, nil).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			listOfInstances: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected:   false,
@@ -275,6 +285,7 @@ func TestDeleteEbsSnapshot(t *testing.T) {
 			title: "test 2 - Invalid EBS snapshots passed",
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.DeleteSnapshot(gomock.Any()).Return(&ec2.DeleteSnapshotOutput{}, errors.New("ERROR")).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			listOfEbsSnapshots: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected:      true,
@@ -282,7 +293,7 @@ func TestDeleteEbsSnapshot(t *testing.T) {
 			title: "test 3 - valid EBS instance passed",
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.DeleteSnapshot(gomock.Any()).Return(&ec2.DeleteSnapshotOutput{}, nil).AnyTimes()
-
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			listOfEbsSnapshots: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected:      false,
@@ -321,6 +332,7 @@ func TestDeleteEbsVolumes(t *testing.T) {
 			title: "test 2 - Invalid EBS Volume ID's passed",
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.DeleteVolume(gomock.Any()).Return(&ec2.DeleteVolumeOutput{}, errors.New("ERROR")).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			listOfEbsVolumes: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected:    true,
@@ -328,7 +340,7 @@ func TestDeleteEbsVolumes(t *testing.T) {
 			title: "test 3 - valid EBS  value ID's instance passed",
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.DeleteVolume(gomock.Any()).Return(&ec2.DeleteVolumeOutput{}, nil).AnyTimes()
-
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			listOfEbsVolumes: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected:    false,
@@ -367,6 +379,7 @@ func TestDeleteEFS(t *testing.T) {
 			title: "test 2 - Invalid EFS ID passed",
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.DeleteFileSystem(gomock.Any()).Return(&efs.DeleteFileSystemOutput{}, errors.New("Error")).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			fileSystemToBeDeleted: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected:         true,
@@ -374,6 +387,7 @@ func TestDeleteEFS(t *testing.T) {
 			title: "test 3 - valid EFS ID passed",
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.DeleteFileSystem(gomock.Any()).Return(&efs.DeleteFileSystemOutput{}, nil).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			fileSystemToBeDeleted: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected:         false,
@@ -412,6 +426,7 @@ func TestDeleteEFSMountTarget(t *testing.T) {
 			title: "test 2 - Invalid EFS mount target ID passed",
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.DeleteMountTarget(gomock.Any()).Return(&efs.DeleteMountTargetOutput{}, errors.New("ERROR")).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			mountTargetToBeDeleted: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected:          true,
@@ -419,6 +434,7 @@ func TestDeleteEFSMountTarget(t *testing.T) {
 			title: "test 3 - valid EFS mount target ID passed",
 			setupAWSMock: func(r *mock.MockClientMockRecorder) {
 				r.DeleteMountTarget(gomock.Any()).Return(&efs.DeleteMountTargetOutput{}, nil).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			mountTargetToBeDeleted: []*string{aws.String("abcd"), aws.String("abcd")},
 			errorExpected:          false,

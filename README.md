@@ -8,10 +8,19 @@ Repository to audit, service, and clean up leftover AWS resources
 
 ## Deploying Shredder Locally
 
-Load up CRC or Minishift. If you don't already have them, create the namespace for `aws-account-operator` and `aws-account-shredder`.
+Load up CRC or Minishift. If you don't already have them, create the namespaces:
+```
+oc create ns aws-account-operator
+oc create ns aws-account-shredder
+```
 
-Apply the following secret, filling in your own account details based on the environment you're creating:
+You'll need to apply a secret with your aws account details, the details for your aws credentials will need to be base64 encoded before being added to the secret, you can do that like:
+```
+echo -n {AWS_ACCESS_KEY_ID} | base64
+echo -n {AWS_SECRET_ACCESS_KEY} | base64
+```
 
+Now you can fill in the fields below and apply the secret:
 ```json
 {
     "apiVersion": "v1",
@@ -27,6 +36,7 @@ Apply the following secret, filling in your own account details based on the env
     "type": "Opaque"
 }
 ```
+> **Note:** If you find yourself changing the secret while the shredder is running, you'll need to kill the shredder pod to ensure the updated secret is pulled when the new pod is created.
 
 Open the aws-account-shredder repository and apply the `service_account.yaml`, `service_account_role.yaml`, and `service_account_rolebinding.yaml` to the `aws-account-shredder` namespace.  Apply the `read_account_role.yaml`, `read_account_role_binding.yaml` files to the `aws-account-operator` namespace.
 
@@ -78,7 +88,7 @@ Once you set the status of the account to failed, the Shredder should pick it up
 
 You should be able to follow the logs and watch the shred happen using `oc logs -f [pod name] -n aws-account-shredder`.  Certain objects may not delete on the first attempt through the shredder, but the shredder will continue to run on the account until it is created.
 
-Once you are done with the cleanup, remove the Failed account (otherwise the shredder will infinitely loop over this account).  You can accomplish this with `oc delete -n aws-account-operator aws-shredder-account-delete`
+Once you are done with the cleanup, remove the Failed account (otherwise the shredder will infinitely loop over this account). You can accomplish this with `oc delete account -n aws-account-operator aws-shredder-account-delete`
 
 ## Testing your changes locally
 
