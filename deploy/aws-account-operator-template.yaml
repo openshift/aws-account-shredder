@@ -19,6 +19,7 @@ objects:
           - aws.managed.openshift.io
         resources:
           - accounts
+          - accounts/status
         verbs:
           - 'get'
           - 'list'
