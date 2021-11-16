@@ -19,7 +19,7 @@ import (
 	clientGoScheme "k8s.io/client-go/kubernetes/scheme"
 	kubeRest "k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 const (
@@ -83,7 +83,7 @@ func main() {
 			startTime := time.Now()
 
 			logger := log.WithValues("AccountName", account.Name, "AccountID", account.Spec.AwsAccountID)
-			logger.Info("New Account being shredded") // Usefull for keeping track of when work begins on an account
+			logger.Info("New Account being shredded") // Useful for keeping track of when work begins on an account
 
 			if account.Spec.AwsAccountID == "" {
 				logger.Error(err, fmt.Sprintf("Account %s has no AWS Account ID attached", account.Name))
@@ -134,7 +134,10 @@ func main() {
 				}
 			}
 			if resetAccount {
-				awsv1alpha1.ResetAccountStatus(cli, account)
+				err := awsv1alpha1.ResetAccountStatus(cli, account)
+				if err != nil {
+					logger.Error(err, "Failed to reset account status")
+				}
 				localMetrics.Metrics.AccountSuccess.Inc()
 			} else {
 				localMetrics.Metrics.AccountFail.Inc()

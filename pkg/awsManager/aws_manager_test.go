@@ -16,7 +16,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 	"github.com/openshift/aws-account-shredder/pkg/mock"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type mockSuite struct {

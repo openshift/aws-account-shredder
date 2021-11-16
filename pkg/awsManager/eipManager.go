@@ -35,7 +35,7 @@ func CleanEIPAddresses(client clientpkg.Client, logger logr.Logger) error {
 				return err
 			}
 		}
-		logger.Info("Succesfully released all EIP addresses in the current region")
+		logger.Info("Successfully released all EIP addresses in the current region")
 	}
 	return nil
 }
