@@ -12,7 +12,7 @@ import (
 const (
 	awsCredsSecretIDKey     = "aws_access_key_id"
 	awsCredsSecretAccessKey = "aws_secret_access_key"
-	namespace               = "aws-account-shredder"             // change the namespace according to your environment. this is the namespace, from where secret has to retreived from
+	namespace               = "aws-account-operator"             // change the namespace according to your environment. this is the namespace, from where secret has to retreived from
 	secretName              = "aws-account-shredder-credentials" // the name of the secret to be read
 )
 
