@@ -43,7 +43,7 @@ func ListEbsSnapshotForDeletion(client clientpkg.Client, logger logr.Logger) []*
 }
 
 // DeleteEbsSnapshots deletes the Ebs Snapshot
-// successful execution returns nil. Unsuccessful execution or errors occured, would return an error
+// successful execution returns nil. Unsuccessful execution or errors occurred, would return an error
 func DeleteEbsSnapshots(client clientpkg.Client, ebsSnapshotsToBeDeleted []*string, logger logr.Logger) error {
 
 	if ebsSnapshotsToBeDeleted == nil {

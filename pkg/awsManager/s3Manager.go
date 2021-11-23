@@ -25,7 +25,7 @@ func ListS3InstancesForDeletion(client clientpkg.Client, logger logr.Logger) []*
 }
 
 //DeleteS3Buckets deletes the S3 buckets
-// successful execution returns nil. Unsuccessful execution or errors occured, would return an error
+// successful execution returns nil. Unsuccessful execution or errors occurred, would return an error
 func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string, logger logr.Logger) error {
 
 	if s3BucketsToBeDeleted == nil {
