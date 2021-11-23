@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: aws-account-shredder
+  namespace: aws-account-operator
   name: aws-account-shredder
   labels:
     name: aws-account-shredder
