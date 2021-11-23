@@ -13,4 +13,5 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-deploy/aws.managed.openshift.io_accounts.yaml
+deploy/aws.managed.openshift.io_accounts.yamlhack/aao_dependencies
+.envrc

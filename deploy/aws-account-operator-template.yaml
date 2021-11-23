@@ -6,7 +6,7 @@ metadata:
 parameters:
   - name: SHREDDER_NAMESPACE
     required: true
-    value: aws-account-shredder
+    value: aws-account-operator
 
 
 objects:
