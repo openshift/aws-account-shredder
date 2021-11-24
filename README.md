@@ -92,7 +92,9 @@ Once you are done with the cleanup, remove the Failed account (otherwise the shr
 
 ## Testing your changes locally
 
-To test your changes locally, you'll need to have public repository to host the image you are going to build. For the following example we will maintain quay as the registry used.
+To test your changes locally, run `make test` and `make lint`. 
+
+You'll need to have public repository to host the image you are going to build. For the following example we will maintain quay as the registry used.
 
 You'll need to edit the `IMAGE_REPOSITORY` field in `project.mk` to point at your `aws-account-shredder` repo , not that of `app-sre`:
 ```
