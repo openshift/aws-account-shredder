@@ -101,3 +101,14 @@ delete-deploy:
 .PHONY: clean-operator
 clean-operator: delete-namespace
 	rm -rf $(AAO_DEPENDENCIES_OUT_FOLDER)
+
+GOLANGCI_LINT_CACHE ?= /tmp/golangci-cache
+
+.PHONY: lint
+lint: 
+	GOLANGCI_LINT_CACHE=${GOLANGCI_LINT_CACHE}
+	-@golangci-lint run 
+
+.PHONY: test
+test: 
+	@go test ./...

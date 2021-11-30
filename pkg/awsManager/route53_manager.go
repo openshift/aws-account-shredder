@@ -88,7 +88,8 @@ func CleanUpAwsRoute53(client clientpkg.Client, logger logr.Logger) error {
 		}
 	}
 
-	if errFlag == true {
+	// errFlag initially set to false
+	if errFlag {
 		return errors.New("ERROR")
 	} else {
 		logger.Info("Route53 cleanup finished successfully")
