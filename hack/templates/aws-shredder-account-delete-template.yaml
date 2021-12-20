@@ -1,0 +1,24 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: aws-account-operator-template
+parameters:
+  - name: NAMESPACE
+    required: true
+  - name: SHRED_ACCOUNT_CR_NAME
+    required: true
+  - name: ACCOUNT_ID_TO_SHRED
+    required: true
+objects:
+  - apiVersion: aws.managed.openshift.io/v1alpha1
+    kind: Account
+    metadata:
+      name: ${SHRED_ACCOUNT_CR_NAME}
+      namespace: ${NAMESPACE}
+    spec:
+      awsAccountID: "${ACCOUNT_ID_TO_SHRED}"
+      claimLink: ""
+      iamUserSecret: ""
+      legalEntity:
+        id: ""
+        name: ""
