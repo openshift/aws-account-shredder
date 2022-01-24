@@ -12,6 +12,10 @@ import (
 	"github.com/openshift/aws-account-shredder/pkg/localMetrics"
 )
 
+const (
+	maxBatchSize int = 50
+)
+
 // ListEc2InstancesForDeletion this lists all the instances that are eligible for deletion based on the tags and stored them in instances to be deleted
 // this only creates an array of pointers and does not delete the instances
 func ListEc2InstancesForDeletion(client clientpkg.Client, logger logr.Logger) []*string {
@@ -60,18 +64,27 @@ func DeleteEc2Instance(client clientpkg.Client, EC2InstancesToBeDeleted []*strin
 		return nil
 	}
 
-	_, err := client.TerminateInstances(&ec2.TerminateInstancesInput{InstanceIds: EC2InstancesToBeDeleted})
-	if err != nil {
-		if err, ok := err.(awserr.Error); ok {
-			switch err.Code() {
-			default:
-				logger.Error(err, "Failed to delete instances provided", "Instances", &EC2InstancesToBeDeleted)
-			}
-		} else {
-			logger.Error(err, "Failed to delete instances provided", "Instances", &EC2InstancesToBeDeleted)
+	// We're batching the deletes to avoid hitting the limit of instances per request
+	totalToDelete := len(EC2InstancesToBeDeleted)
+	for lowerBound, upperBound := 0, 0; lowerBound <= totalToDelete-1; lowerBound = upperBound {
+		upperBound = lowerBound + maxBatchSize
+		if upperBound > totalToDelete {
+			upperBound = totalToDelete
 		}
-		localMetrics.ResourceFail(localMetrics.Ec2Instance, client.GetRegion())
-		return errors.New("FailedToDeleteEc2Instance")
+		batchedEC2Instances := EC2InstancesToBeDeleted[lowerBound:upperBound]
+		_, err := client.TerminateInstances(&ec2.TerminateInstancesInput{InstanceIds: batchedEC2Instances})
+		if err != nil {
+			if err, ok := err.(awserr.Error); ok {
+				switch err.Code() {
+				default:
+					logger.Error(err, "Failed to delete instances provided", "Instances", &batchedEC2Instances)
+				}
+			} else {
+				logger.Error(err, "Failed to delete instances provided", "Instances", &batchedEC2Instances)
+			}
+			localMetrics.ResourceFail(localMetrics.Ec2Instance, client.GetRegion())
+			return errors.New("FailedToDeleteEc2Instance")
+		}
 	}
 	localMetrics.ResourceSuccess(localMetrics.Ec2Instance, client.GetRegion())
 	return nil
