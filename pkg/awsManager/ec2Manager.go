@@ -1,11 +1,9 @@
 package awsManager
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/go-logr/logr"
 	clientpkg "github.com/openshift/aws-account-shredder/pkg/aws"
@@ -74,16 +72,9 @@ func DeleteEc2Instance(client clientpkg.Client, EC2InstancesToBeDeleted []*strin
 		batchedEC2Instances := EC2InstancesToBeDeleted[lowerBound:upperBound]
 		_, err := client.TerminateInstances(&ec2.TerminateInstancesInput{InstanceIds: batchedEC2Instances})
 		if err != nil {
-			if err, ok := err.(awserr.Error); ok {
-				switch err.Code() {
-				default:
-					logger.Error(err, "Failed to delete instances provided", "Instances", &batchedEC2Instances)
-				}
-			} else {
-				logger.Error(err, "Failed to delete instances provided", "Instances", &batchedEC2Instances)
-			}
 			localMetrics.ResourceFail(localMetrics.Ec2Instance, client.GetRegion())
-			return errors.New("FailedToDeleteEc2Instance")
+			logger.Error(err, "Failed to delete instances provided", "Instances", &batchedEC2Instances)
+			return err
 		}
 	}
 	localMetrics.ResourceSuccess(localMetrics.Ec2Instance, client.GetRegion())
