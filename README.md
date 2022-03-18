@@ -4,7 +4,11 @@
 [![License](https://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 
-Repository to audit, service, and clean up leftover AWS resources
+Repository to audit, service, and clean up leftover AWS resources. 
+
+Once deployed, the AWS Account Shredder runs continuously looking for Account CR's in the `aws-account-operator` namespace
+with a "Failed" state. Any such Account CR's will have their associated AWS resources cleaned up before resetting the Account CR
+state.
 
 ## Prerequisites
 * [osdctl](https://github.com/openshift/osdctl/) available in your `$PATH`
@@ -15,9 +19,9 @@ Repository to audit, service, and clean up leftover AWS resources
 
 First make sure you have the following environment variables defined:
 ```
-AWS_ACCESS_KEY_ID     # Access Key for the aws account that should be shredded
-AWS_SECRET_ACCESS_KEY # Secret Key for the aws account that should be shredded
-SHRED_ACCOUNT_ID      # ID of the Account that should be shredded
+AWS_ACCESS_KEY_ID           # Access Key for the aws account that should be shredded
+AWS_SECRET_ACCESS_KEY       # Secret Key for the aws account that should be shredded
+AWS_ACCOUNTS_TO_SHRED_FILE  # AWS account IDs that should be shredded, 1 id per line
 ```
 
 **Tip:** You can use [direnv](https://direnv.net) and add the above block (with variables filled in) into a `.envrc` file (make sure `.envrc` is in your global git ignore as well). Upon entry to the `aws-account-shredder` folder, the env vars inside the file will be loaded automatically, and unset when you leave the folder.
@@ -47,26 +51,83 @@ make deploy
 
 ## Running an ad-hoc shred
 
-The following steps will perform the shredding on the account-id specified earlier. ( the `ACCOUNT_ID_TO_SHRED` environment variable ).
+Generally speaking, you should first try to shred an account by finding the official Account CR on the appropriate hive cluster and setting its state to "Failed"
+(e.g. `osdctl account set somehow-identified-account-cr-name --state=Failed`).
 
-> DOUBLE CHECK THAT YOU'VE CONFIGURED THE CORRECT ACCOUNT ID, AS THIS IS A DESTRUCTIVE OPERATION THAT CAN NOT BE UNDONE!
+If you cant do this for some reason, you can deploy the AWS Account Shredder locally, create an Account CR for the AWS Account IDs, marke them failed and let your
+local shredder clean them up. Use cases for this are predominately around cleaning up orphaned accounts from developer activity in staging/integration envrionments 
+(rather than customer accounts in production which should have a more sane state). In other words, this method should only be used as a last resort for AWS resources
+with no associated Account CR or hive cluster.
 
-Run the following to create the account:
+The following steps will perform the shredding on the AWS account-ids specified earlier. ( the `AWS_ACCOUNTS_TO_SHRED_FILE` environment variable ).
+
+> DOUBLE CHECK THAT YOU'VE ACCOUNT IDS IN FILE, AS THIS IS A DESTRUCTIVE OPERATION THAT CAN NOT BE UNDONE!
+
 ```
-make create-account
+make shred-accounts
 ```
 
-This will use the template [aws-shredder-account-delete-template.yaml](./hack/templates/aws-shredder-account-delete-template.yaml) to create a new account cr that represents your aws account. Then, use the next command to mark the account as `failed`, which will cause the account shredder to shred that account:
-
+Shredding can take minutes per account, so a large list of AWS Account IDs can take a long time to finish. 
+You can check on the status of the shredding with:
 ```
-make shred-account
+make shred-accounts-status
 ```
 
-Once you set the status of the account to failed, the Shredder should pick it up and start shredding through the accounts.
+You can remove successfully shredded accounts with:
+```
+make shred-accounts-clean
+```
 
-You should be able to follow the logs and watch the shred happen using `make get-logs`.  Certain aws resources may not completely delete on the first attempt through the shredder, but the shredder will continue to run on the account until it is cleaned.
+Example:
+```
+$ oc status
+In project default on server https://api.crc.testing:6443
 
-Once you are done with the cleanup, remove the Failed account (otherwise the shredder will infinitely loop over this account). You can accomplish this with `make delete-account`
+svc/openshift - kubernetes.default.svc.cluster.local
+svc/kubernetes - 10.217.4.1:443 -> 6443
+
+View details with 'oc describe <resource>/<name>' or list resources with 'oc get all'.
+$ oc whoami
+kubeadmin
+$ cat ~/aws_account_ids.txt
+1234
+9876
+$ export AWS_ACCOUNTS_TO_SHRED_FILE=~/aws_account_ids.txt
+$ make predeploy
+...
+$ make deploy
+...
+$ make shred-accounts
+hack/get_current_api_url.sh | grep '127.0.0.1\|api.crc.testing'
+https://api.crc.testing:6443
+hack/shred_accounts.sh -f /Users/mstratto/aws_account_ids.txt mark
+Marking accounts for shredding
+account.aws.managed.openshift.io/aws-shredder-account-delete-1234 created
+account.aws.managed.openshift.io/aws-shredder-account-delete-9876 created
+$ make shred-accounts-status
+hack/get_current_api_url.sh | grep '127.0.0.1\|api.crc.testing'
+https://api.crc.testing:6443
+hack/shred_accounts.sh -f /Users/mstratto/aws_account_ids.txt status
+Checking account shredder status.
+1234 - pending
+9876 - Ready
+Accounts: 2
+Accounts shredded: 1
+Account pending: 1
+Accounts missing: 0
+$ make shred-accounts-cleanup
+hack/get_current_api_url.sh | grep '127.0.0.1\|api.crc.testing'
+https://api.crc.testing:6443
+hack/shred_accounts.sh -f /Users/mstratto/aws_account_ids.txt cleanup
+Cleaning up after account shredder.
+1234 - pending
+9876 - Ready
+account.aws.managed.openshift.io "aws-shredder-account-delete-9876" deleted
+Accounts: 2
+Accounts shredded: 1
+Account pending: 1
+Accounts missing: 0
+```
 
 To remove all created resources from your local cluster, you can run `make clean-operator`.
 

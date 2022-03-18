@@ -19,16 +19,15 @@ GOFLAGS ?=
 ACCOUNT_CRD_REF=master
 
 export SHREDDER_NAMESPACE=aws-account-shredder
-SHRED_ACCOUNT_CR_NAME=aws-shredder-account-delete
 ACCOUNT_OPERATOR_NAMESPACE=aws-account-operator
 
 IMAGE=$(IMAGE_REGISTRY)/$(IMAGE_REPOSITORY)/$(IMAGE_NAME)
 IMAGE_TAG=latest
 
-.PHONY: check-shred-account-id
-check-shred-account-id:
-ifndef ACCOUNT_ID_TO_SHRED
-	$(error ACCOUNT_ID_TO_SHRED is undefined)
+.PHONY: check-shred-account-id-file
+check-shred-account-id-file:
+ifndef AWS_ACCOUNTS_TO_SHRED_FILE
+	$(error AWS_ACCOUNTS_TO_SHRED_FILE is undefined)
 endif
 
 .PHONY: check-aws-account-credentials
@@ -51,21 +50,17 @@ export GOPROXY=https://proxy.golang.org
 docker-build: build
 
 # Helper functions to improve local testing experience
-.PHONY: create-account
-create-account: check-shred-account-id
-	@oc process --local -f hack/templates/aws-shredder-account-delete-template.yaml \
-		-p NAMESPACE=$(ACCOUNT_OPERATOR_NAMESPACE) \
-		-p SHRED_ACCOUNT_CR_NAME=$(SHRED_ACCOUNT_CR_NAME) \
-		-p ACCOUNT_ID_TO_SHRED=$(ACCOUNT_ID_TO_SHRED) | \
-		oc apply -f -
+.PHONY: shred-accounts
+shred-accounts: only-local-ctx check-shred-account-id-file
+	hack/shred_accounts.sh -f $(AWS_ACCOUNTS_TO_SHRED_FILE) mark
 
-.PHONY: shred-account
-shred-account: only-local-ctx
-	@osdctl account set $(SHRED_ACCOUNT_CR_NAME) --state=Failed
+.PHONY: shred-accounts-status
+shred-accounts-status: only-local-ctx check-shred-account-id-file
+	hack/shred_accounts.sh -f $(AWS_ACCOUNTS_TO_SHRED_FILE) status
 
-.PHONY: delete-account
-delete-account: only-local-ctx
-	@oc delete account -n $(ACCOUNT_OPERATOR_NAMESPACE) $(SHRED_ACCOUNT_CR_NAME)
+.PHONY: shred-accounts-cleanup
+shred-accounts-cleanup: only-local-ctx check-shred-account-id-file
+	hack/shred_accounts.sh -f $(AWS_ACCOUNTS_TO_SHRED_FILE) cleanup
 
 .PHONY: get-logs
 get-logs: only-local-ctx
