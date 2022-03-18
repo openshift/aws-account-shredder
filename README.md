@@ -58,8 +58,8 @@ account-cr-name-for-AWS_ACC_ID_1234
 $ osdctl account set account-cr-name-for-AWS_ACC_ID_1234 --state=Failed
 ```
 
-If you cant do this for some reason, you can deploy the AWS Account Shredder locally, create an Account CR for the AWS Account IDs, marke them failed and let your
-local shredder clean them up. Use cases for this are predominately around cleaning up orphaned accounts from developer activity in staging/integration envrionments 
+If you cant do this for some reason, you can deploy the AWS Account Shredder locally, create an Account CR for the AWS Account IDs, mark them failed and let your
+local shredder clean them up. Use cases for this are predominately around cleaning up orphaned accounts from developer activity in staging/integration environments 
 (the shredder should not be used for customer accounts in production). In other words, this method should only be used as a last resort for AWS resources
 with no associated Account CR or hive cluster.
 
