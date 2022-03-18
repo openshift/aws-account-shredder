@@ -81,8 +81,8 @@ function checkAccountShredderStatus {
         if [ "$accountExists" = true ]; then
             accountCrState=$(oc get accounts -n $ACCOUNT_OPERATOR_NAMESPACE $accountCrName -o json 2>/dev/null | jq -r .status.state)
             if [ "$accountCrState" = "Failed" ]; then
-                #account for the bug where an account was shredded but for some reason kubernettes doesnt let the shredded reset the account status
-                failedToUpdateStatus=$(cat shredder_status.log | jq -s --arg id "$id" '.[] | select(.AccountID | . and . == $id) | select(.msg | contains("Failed to reset account status"))' | jq -s '. | length')
+                #account for the bug where an account was shredder but for some reason kubernettes doesnt let the shredded reset the account status
+                failedToUpdateStatus=$(cat $OC_LOGS_CACHE_FILE | jq -s --arg id "$id" '.[] | select(.AccountID | . and . == $id) | select(.msg | contains("Failed to reset account status"))' | jq -s '. | length')
                 if (( $failedToUpdateStatus > 0 )) ; then
                     echo "$id - shredded (unable to update status)"
                     shredded=$((shredded+1))

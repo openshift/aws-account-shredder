@@ -59,21 +59,20 @@ local shredder clean them up. Use cases for this are predominately around cleani
 (rather than customer accounts in production which should have a more sane state). In other words, this method should only be used as a last resort for AWS resources
 with no associated Account CR or hive cluster.
 
-The following steps will perform the shredding on the AWS account-ids specified earlier. ( the `AWS_ACCOUNTS_TO_SHRED_FILE` environment variable ).
+> DOUBLE CHECK THAT THE ACCOUNT IDS IN THE `AWS_ACCOUNTS_TO_SHRED_FILE` FILE BEFORE PROCEEDING, AS THIS IS A DESTRUCTIVE OPERATION THAT CAN NOT BE UNDONE!
 
-> DOUBLE CHECK THAT YOU'VE ACCOUNT IDS IN FILE, AS THIS IS A DESTRUCTIVE OPERATION THAT CAN NOT BE UNDONE!
-
+After deploying the AWS Account Shredder locally and setting `AWS_ACCOUNTS_TO_SHRED_FILE` run:
 ```
 make shred-accounts
 ```
 
-Shredding can take minutes per account, so a large list of AWS Account IDs can take a long time to finish. 
+Shredding can take minutes per account and sometimes it can take several passes to cleanup all resources, so a large list of AWS Account IDs can take a long time to finish. 
 You can check on the status of the shredding with:
 ```
 make shred-accounts-status
 ```
 
-You can remove successfully shredded accounts with:
+You can remove successfully shredded accounts to reduce unnecessary shredder work on large AWS Account ID lists with:
 ```
 make shred-accounts-clean
 ```
