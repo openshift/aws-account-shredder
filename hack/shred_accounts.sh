@@ -1,13 +1,14 @@
 #!/bin/bash
 
 ACCOUNT_OPERATOR_NAMESPACE=aws-account-operator
-OC_LOGS_CACHE_FILE=shredder_status.log
+ACCOUNT_SHREDDER_NAMESPACE=aws-account-shredder
+OC_LOG_WINDOW="1h"
 
 
 function help {
   name=`basename $0`
   cat <<EOF
-$name [-f filename] [-h] command
+$name [-f filename] [-w ocLogsSince] [-h] command
 
 Run an ad-hoc shredding of 1 or more AWS account ids using a locally deployed AWS Account Shredder.
 
@@ -27,11 +28,9 @@ options:
     -h  print script usage message and exit
     -f  file path to a list of AWS account ids. This file should only contain
         AWS account ids, 1 per line.
+    -w  the "since" variable used when fetching oc logs (e.g. `oc logs --since 5m`).
+        Shorter windows will speed up runtimes. Defaults to "1h"
 EOF
-}
-
-function onExit {
-    rm $OC_LOGS_CACHE_FILE 2>/dev/null
 }
 
 function lowerCase {
@@ -51,15 +50,20 @@ function accountCrName {
     echo "aws-shredder-account-delete-$awsAccountId"
 }
 
-function accountCrExists {
-    local accountCrName=$1
-    oc get accounts -n $ACCOUNT_OPERATOR_NAMESPACE $accountCrName -o json &>/dev/null
-    status=$?
-    if (( $status == 0 )); then
-        echo true
-    else 
-        echo false
-    fi
+# generate a json map of AWS Account IDs to oc state which will act as a cache to reduce overall oc calls which are relatively slow
+# e.g. {"1234": "Failed", "9876": "Ready", ...}
+function ocAccountStatusCache {
+    oc get accounts -n $ACCOUNT_OPERATOR_NAMESPACE -o json | jq '.items | map({ (.spec.awsAccountID): .status.state }) | add'
+}
+
+# generate a json map of AWS Account IDs that have the "Failed to reset account status" error message in logs that 
+# indicates an account has been successfully shredded. oc logs can be quite large and this reduces the ammount of 
+# times we need jq to process the large amount of json
+# e.g. {"1234": true, "9876": true, ...}
+function accountFailedToUpdateCache {
+    oc logs deployment/aws-account-shredder -n $ACCOUNT_SHREDDER_NAMESPACE --since $OC_LOG_WINDOW | \
+    jq -R "fromjson? | . " -c | \
+    jq -s '[.[] | select(.msg | contains("Failed to reset account status"))] | map({(.AccountID): true}) | add'
 }
 
 # Reads AWS Account IDs from a file and checks on the shredding status of the Account CR
@@ -71,38 +75,39 @@ function checkAccountShredderStatus {
     pending=0
     missing=0
 
-    # cache shredder logs to a file (lines which arent parseable as json)
-    oc logs deployment/aws-account-shredder -n aws-account-shredder --since 12h | jq -R "fromjson? | . " -c > $OC_LOGS_CACHE_FILE
+    echo "Gathering data from oc (this can take a while)..."
+    accountStatusJson=$(ocAccountStatusCache)
+    accountsFailedToUpdateStatus=$(accountFailedToUpdateCache)
     
     for id in "${accountIds[@]}"
     do
+        # lookup oc account state in our cache
+        accountCrState=$(echo $accountStatusJson | jq -r --arg id "$id" '.[$id]')
         accountCrName=$(accountCrName $id)
-        accountExists=$(accountCrExists $accountCrName)
-        if [ "$accountExists" = true ]; then
-            accountCrState=$(oc get accounts -n $ACCOUNT_OPERATOR_NAMESPACE $accountCrName -o json 2>/dev/null | jq -r .status.state)
-            if [ "$accountCrState" = "Failed" ]; then
-                #account for the bug where an account was shredder but for some reason kubernettes doesnt let the shredded reset the account status
-                failedToUpdateStatus=$(cat $OC_LOGS_CACHE_FILE | jq -s --arg id "$id" '.[] | select(.AccountID | . and . == $id) | select(.msg | contains("Failed to reset account status"))' | jq -s '. | length')
-                if (( $failedToUpdateStatus > 0 )) ; then
-                    echo "$id - shredded (unable to update status)"
-                    shredded=$((shredded+1))
-                    if [ "$cleanup" = true ] ; then
-                        oc delete account -n $ACCOUNT_OPERATOR_NAMESPACE $accountCrName
-                    fi
-                else
-                    echo "$id - pending"
-                    pending=$((pending+1))
-                fi
-            else
-                echo "$id - $accountCrState"
+
+        if [ "$accountCrState" = "" ] || [ "$accountCrState" = "null" ]; then
+            echo "$id - Account CR missing"
+            missing=$((missing+1))
+        elif [ "$accountCrState" = "Failed" ]; then
+            #check for "Failed to reset account status" message in our cache
+            failedToUpdateStatusLogMessagePresent=$(echo $accountsFailedToUpdateStatus | jq -r --arg id "$id" '.[$id]')
+            if [ "$failedToUpdateStatusLogMessagePresent" = "true" ]; then
+                echo "$id - shredded (unable to update status)"
                 shredded=$((shredded+1))
                 if [ "$cleanup" = true ] ; then
                     oc delete account -n $ACCOUNT_OPERATOR_NAMESPACE $accountCrName
                 fi
+            else
+                echo "$id - pending"
+                echo "$id" >> pending.txt
+                pending=$((pending+1))
             fi
         else
-            echo "$id - Account CR missing"
-            missing=$((missing+1))
+            echo "$id - $accountCrState"
+            shredded=$((shredded+1))
+            if [ "$cleanup" = true ] ; then
+                oc delete account -n $ACCOUNT_OPERATOR_NAMESPACE $accountCrName
+            fi
         fi
     done
 
@@ -116,12 +121,15 @@ function checkAccountShredderStatus {
 }
 
 function markAccountForShredding {
+    echo "Gathering data from oc (this can take a while)..."
+    accountStatusJson=$(ocAccountStatusCache)
     accountIds=( $(awsAccountIdsFromFile $1) )
+
     for id in "${accountIds[@]}"
     do
         accountCrName=$(accountCrName $id)
-        accountExists=$(accountCrExists $accountCrName)
-        if [ "$accountExists" = false ]; then
+        accountCrState=$(echo $accountStatusJson | jq -r --arg id "$id" '.[$id]')
+        if [ "$accountCrState" = "" ] || [ "$accountCrState" = "null" ]; then
             oc process --local -f hack/templates/aws-shredder-account-delete-template.yaml \
                 -p NAMESPACE=$ACCOUNT_OPERATOR_NAMESPACE \
                 -p SHRED_ACCOUNT_CR_NAME=$accountCrName \
@@ -134,14 +142,14 @@ function markAccountForShredding {
     done
 }
 
-trap onExit EXIT
 fileName=""
 
-while getopts "h:f:" flag; do
+while getopts "h:f:w:" flag; do
 case "$flag" in
     h) help
        exit 0;;
     f) fileName=$OPTARG;;
+    w) OC_LOG_WINDOW=$OPTARG;;
 esac
 done
 
@@ -156,19 +164,16 @@ case "$cmd" in
     "status")
         echo ""
         echo "Checking account shredder status."
-        echo ""
         checkAccountShredderStatus $fileName false
         ;;
     "cleanup")
         echo ""
         echo "Cleaning up after account shredder."
-        echo ""
         checkAccountShredderStatus $fileName true
         ;;
     "mark")
         echo ""
         echo "Marking accounts for shredding"
-        echo ""
         markAccountForShredding $fileName
         ;;
     *)
