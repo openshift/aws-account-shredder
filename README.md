@@ -54,8 +54,8 @@ make deploy
 Generally speaking, you should first try to shred an account by finding the official Account CR on the appropriate hive cluster and setting its state to "Failed"
 (e.g. `osdctl account set somehow-identified-account-cr-name --state=Failed`).
 
-If you cant do this for some reason, you can deploy the AWS Account Shredder locally, create an Account CR for the AWS Account IDs, marke them failed and let your
-local shredder clean them up. Use cases for this are predominately around cleaning up orphaned accounts from developer activity in staging/integration envrionments 
+If you cant do this for some reason, you can deploy the AWS Account Shredder locally, create an Account CR for the AWS Account IDs, mark them failed and let your
+local shredder clean them up. Use cases for this are predominately around cleaning up orphaned accounts from developer activity in staging/integration environments 
 (rather than customer accounts in production which should have a more sane state). In other words, this method should only be used as a last resort for AWS resources
 with no associated Account CR or hive cluster.
 
