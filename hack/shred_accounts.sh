@@ -107,7 +107,9 @@ function checkAccountShredderStatus {
     done
 
     total=$((shredded + pending + missing))
+    echo ""
     echo "Accounts: $total"
+    echo ""
     echo "Accounts shredded: $shredded"
     echo "Account pending: $pending"
     echo "Accounts missing: $missing"
@@ -152,15 +154,21 @@ cmd=`lowerCase ${@:$OPTIND:1}`
 
 case "$cmd" in
     "status")
+        echo ""
         echo "Checking account shredder status."
+        echo ""
         checkAccountShredderStatus $fileName false
         ;;
     "cleanup")
+        echo ""
         echo "Cleaning up after account shredder."
+        echo ""
         checkAccountShredderStatus $fileName true
         ;;
     "mark")
+        echo ""
         echo "Marking accounts for shredding"
+        echo ""
         markAccountForShredding $fileName
         ;;
     *)

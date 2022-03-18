@@ -51,12 +51,16 @@ make deploy
 
 ## Running an ad-hoc shred
 
-Generally speaking, you should first try to shred an account by finding the official Account CR on the appropriate hive cluster and setting its state to "Failed"
-(e.g. `osdctl account set somehow-identified-account-cr-name --state=Failed`).
+Generally speaking, you should first try to shred an account by finding the official Account CR on the appropriate hive cluster and setting its state to "Failed":
+```
+$ oc get accounts -n aws-account-operator -o json | jq -r '.items[] | select(.spec.awsAccountID=="AWS_ACC_ID_1234") | "\(.metadata.name)"'
+account-cr-name-for-AWS_ACC_ID_1234
+$ osdctl account set account-cr-name-for-AWS_ACC_ID_1234 --state=Failed
+```
 
 If you cant do this for some reason, you can deploy the AWS Account Shredder locally, create an Account CR for the AWS Account IDs, marke them failed and let your
 local shredder clean them up. Use cases for this are predominately around cleaning up orphaned accounts from developer activity in staging/integration envrionments 
-(rather than customer accounts in production which should have a more sane state). In other words, this method should only be used as a last resort for AWS resources
+(the shredder should not be used for customer accounts in production). In other words, this method should only be used as a last resort for AWS resources
 with no associated Account CR or hive cluster.
 
 > DOUBLE CHECK THAT THE ACCOUNT IDS IN THE `AWS_ACCOUNTS_TO_SHRED_FILE` FILE BEFORE PROCEEDING, AS THIS IS A DESTRUCTIVE OPERATION THAT CAN NOT BE UNDONE!
@@ -100,17 +104,23 @@ $ make shred-accounts
 hack/get_current_api_url.sh | grep '127.0.0.1\|api.crc.testing'
 https://api.crc.testing:6443
 hack/shred_accounts.sh -f /Users/mstratto/aws_account_ids.txt mark
+
 Marking accounts for shredding
+
 account.aws.managed.openshift.io/aws-shredder-account-delete-1234 created
 account.aws.managed.openshift.io/aws-shredder-account-delete-9876 created
 $ make shred-accounts-status
 hack/get_current_api_url.sh | grep '127.0.0.1\|api.crc.testing'
 https://api.crc.testing:6443
 hack/shred_accounts.sh -f /Users/mstratto/aws_account_ids.txt status
+
 Checking account shredder status.
+
 1234 - pending
 9876 - Ready
+
 Accounts: 2
+
 Accounts shredded: 1
 Account pending: 1
 Accounts missing: 0
@@ -118,11 +128,15 @@ $ make shred-accounts-cleanup
 hack/get_current_api_url.sh | grep '127.0.0.1\|api.crc.testing'
 https://api.crc.testing:6443
 hack/shred_accounts.sh -f /Users/mstratto/aws_account_ids.txt cleanup
+
 Cleaning up after account shredder.
+
 1234 - pending
 9876 - Ready
 account.aws.managed.openshift.io "aws-shredder-account-delete-9876" deleted
+
 Accounts: 2
+
 Accounts shredded: 1
 Account pending: 1
 Accounts missing: 0
