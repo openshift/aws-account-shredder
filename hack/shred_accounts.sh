@@ -99,7 +99,6 @@ function checkAccountShredderStatus {
                 fi
             else
                 echo "$id - pending"
-                echo "$id" >> pending.txt
                 pending=$((pending+1))
             fi
         else
@@ -127,8 +126,10 @@ function markAccountForShredding {
 
     for id in "${accountIds[@]}"
     do
-        accountCrName=$(accountCrName $id)
+        # lookup oc account state in our cache
         accountCrState=$(echo $accountStatusJson | jq -r --arg id "$id" '.[$id]')
+        accountCrName=$(accountCrName $id)
+
         if [ "$accountCrState" = "" ] || [ "$accountCrState" = "null" ]; then
             oc process --local -f hack/templates/aws-shredder-account-delete-template.yaml \
                 -p NAMESPACE=$ACCOUNT_OPERATOR_NAMESPACE \
