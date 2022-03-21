@@ -61,11 +61,6 @@ func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string, lo
 // CleanS3Instances cleans s3 buckets
 func CleanS3Instances(client clientpkg.Client, logger logr.Logger) error {
 
-	// TODO: the underlying AWS api returns all buckets for the entire account,
-	// not per region, while the delete api requires the delete happen from the
-	// correct region. This leads to many unnecessary api calls and log errors
-	// from trying to delete the bucket in the wrong region. We could save time
-	// and eliminate noise by doing a region check on the bucket list returned.
 	s3InstancesToBeDeleted := ListS3InstancesForDeletion(client, logger)
 	err := DeleteS3Buckets(client, s3InstancesToBeDeleted, logger)
 	if err != nil {
