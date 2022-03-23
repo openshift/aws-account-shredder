@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 ACCOUNT_OPERATOR_NAMESPACE=aws-account-operator
 ACCOUNT_SHREDDER_NAMESPACE=aws-account-shredder
@@ -6,7 +7,7 @@ OC_LOG_WINDOW="1h"
 
 
 function help {
-  name=`basename $0`
+  name=$(basename $0)
   cat <<EOF
 $name [-f filename] [-w ocLogsSince] [-h] command
 
@@ -37,14 +38,6 @@ function lowerCase {
     echo "$1" | awk '{print tolower($0)}'
 }
 
-function awsAccountIdsFromFile {
-    local file=$1
-    while IFS=" " read -r AWS_ACC_ID
-    do
-        echo $AWS_ACC_ID
-    done < "$file"
-}
-
 function accountCrName {
     local awsAccountId=$1
     echo "aws-shredder-account-delete-$awsAccountId"
@@ -62,14 +55,14 @@ function ocAccountStatusCache {
 # e.g. {"1234": true, "9876": true, ...}
 function accountFailedToUpdateCache {
     oc logs deployment/aws-account-shredder -n $ACCOUNT_SHREDDER_NAMESPACE --since $OC_LOG_WINDOW | \
-    jq -R "fromjson? | . " -c | \
-    jq -s '[.[] | select(.msg | contains("Failed to reset account status"))] | map({(.AccountID): true}) | add'
+        jq -cR "fromjson? | . " | \
+        jq -s '[.[] | select(.msg | contains("Failed to reset account status"))] | map({(.AccountID): true}) | add'
 }
 
 # Reads AWS Account IDs from a file and checks on the shredding status of the Account CR
 # can optionally remove Account CRs it determines have been successfully shredded
 function checkAccountShredderStatus {    
-    accountIds=( $(awsAccountIdsFromFile $1) )
+    accountIdsFile=$1
     cleanup=$2
     shredded=0
     pending=0
@@ -79,7 +72,7 @@ function checkAccountShredderStatus {
     accountStatusJson=$(ocAccountStatusCache)
     accountsFailedToUpdateStatus=$(accountFailedToUpdateCache)
     
-    for id in "${accountIds[@]}"
+    for id in $(cat $accountIdsFile)
     do
         # lookup oc account state in our cache
         accountCrState=$(echo $accountStatusJson | jq -r --arg id "$id" '.[$id]')
@@ -122,9 +115,9 @@ function checkAccountShredderStatus {
 function markAccountForShredding {
     echo "Gathering data from oc (this can take a while)..."
     accountStatusJson=$(ocAccountStatusCache)
-    accountIds=( $(awsAccountIdsFromFile $1) )
+    accountIdsFile=$1
 
-    for id in "${accountIds[@]}"
+    for id in $(cat $accountIdsFile)
     do
         # lookup oc account state in our cache
         accountCrState=$(echo $accountStatusJson | jq -r --arg id "$id" '.[$id]')
