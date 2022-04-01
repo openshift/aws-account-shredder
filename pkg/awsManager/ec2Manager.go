@@ -62,7 +62,8 @@ func DeleteEc2Instance(client clientpkg.Client, EC2InstancesToBeDeleted []*strin
 		return nil
 	}
 
-	// We're batching the deletes to avoid hitting the limit of instances per request
+	// We're batching the deletes to avoid hitting the limit of instances per request.
+	// This uses a sliding window to iterate through the list in batches.
 	totalToDelete := len(EC2InstancesToBeDeleted)
 	for lowerBound, upperBound := 0, 0; lowerBound <= totalToDelete-1; lowerBound = upperBound {
 		upperBound = lowerBound + maxBatchSize
