@@ -97,13 +97,13 @@ func main() {
 			RoleArnParameter := "arn:aws:iam::" + account.Spec.AwsAccountID + ":role/OrganizationAccountAccessRole"
 			assumedRole, err := awsClient.AssumeRole(&sts.AssumeRoleInput{RoleArn: aws.String(RoleArnParameter), RoleSessionName: aws.String(sessionName)})
 			if err != nil {
-				logger.Error(err, "Failed to assume necessary account role", RoleArnParameter)
+				logger.Error(err, "Failed to assume necessary account role", "RoleARN", RoleArnParameter)
 				localMetrics.Metrics.AccountFail.Inc()
 				// need continue , or else the next line will throw an error ( non existing pointer being deferenced)
 				// hence moving on to next element
 				continue
-
 			}
+
 			assumedAccessKey := *assumedRole.Credentials.AccessKeyId
 			assumedSecretKey := *assumedRole.Credentials.SecretAccessKey
 			assumedSessionToken := *assumedRole.Credentials.SessionToken

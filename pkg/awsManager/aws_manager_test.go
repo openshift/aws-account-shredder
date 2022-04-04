@@ -2,6 +2,7 @@ package awsManager
 
 import (
 	"errors"
+	"strconv"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -89,6 +90,14 @@ func TestDeleteS3Buckets(t *testing.T) {
 	}
 }
 
+func createInstanceList(numInstances int) []*string {
+	var instanceList []*string
+	for i := 0; i < numInstances; i++ {
+		instanceList = append(instanceList, aws.String("i-0"+strconv.Itoa(i)))
+	}
+	return instanceList
+}
+
 func TestDeleteEc2Instance(t *testing.T) {
 
 	testCases := []struct {
@@ -119,6 +128,14 @@ func TestDeleteEc2Instance(t *testing.T) {
 				r.GetRegion().Return("Region1").AnyTimes()
 			},
 			listOfInstances: []*string{aws.String("abcd"), aws.String("abcd")},
+			errorExpected:   false,
+		}, {
+			title: "test 4 - many Instances passed",
+			setupAWSMock: func(r *mock.MockClientMockRecorder) {
+				r.TerminateInstances(gomock.Any()).Return(&ec2.TerminateInstancesOutput{}, nil).AnyTimes()
+				r.GetRegion().Return("Region1").AnyTimes()
+			},
+			listOfInstances: createInstanceList(123),
 			errorExpected:   false,
 		},
 	}
