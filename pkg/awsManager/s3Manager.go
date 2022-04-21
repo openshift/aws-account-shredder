@@ -10,18 +10,19 @@ import (
 )
 
 //ListS3InstancesForDeletion creates a string list of s3 resources that need to be deleted
-func ListS3InstancesForDeletion(client clientpkg.Client, logger logr.Logger) []*string {
+func ListS3InstancesForDeletion(client clientpkg.Client, logger logr.Logger) ([]*string, error) {
 
 	var s3BucketsToBeDeleted []*string
 	s3bucketDescription, err := client.ListBuckets(&s3.ListBucketsInput{})
 	if err != nil {
 		logger.Error(err, "Failed to list s3 buckets")
+		return nil, err
 	}
 	for _, bucket := range s3bucketDescription.Buckets {
 		s3BucketsToBeDeleted = append(s3BucketsToBeDeleted, bucket.Name)
 	}
 
-	return s3BucketsToBeDeleted
+	return s3BucketsToBeDeleted, nil
 }
 
 //DeleteS3Buckets deletes the S3 buckets
@@ -60,7 +61,10 @@ func DeleteS3Buckets(client clientpkg.Client, s3BucketsToBeDeleted []*string, lo
 
 // CleanS3Instances cleans s3 buckets
 func CleanS3Instances(client clientpkg.Client, logger logr.Logger) error {
-	s3InstancesToBeDeleted := ListS3InstancesForDeletion(client, logger)
+	s3InstancesToBeDeleted, err := ListS3InstancesForDeletion(client, logger)
+	if err != nil {
+		return err
+	}
 	err := DeleteS3Buckets(client, s3InstancesToBeDeleted, logger)
 	if err != nil {
 		logger.Error(err, "Failed to delete s3 buckets")

@@ -11,7 +11,7 @@ import (
 )
 
 //ListEbsSnapshotForDeletion does not delete the Ebs snapshots, this only creates an []* string for the resources that have to deleted
-func ListEbsSnapshotForDeletion(client clientpkg.Client, logger logr.Logger) []*string {
+func ListEbsSnapshotForDeletion(client clientpkg.Client, logger logr.Logger) ([]*string, error) {
 
 	var ebsSnapshotsToBeDeleted []*string
 	var token *string
@@ -26,6 +26,7 @@ func ListEbsSnapshotForDeletion(client clientpkg.Client, logger logr.Logger) []*
 		ebsSnapshotList, err := client.DescribeSnapshots(&ec2.DescribeSnapshotsInput{Filters: []*ec2.Filter{&selfOwnerFilter}, NextToken: token})
 		if err != nil {
 			logger.Error(err, "Failed to list EBS snapshots")
+			return nil, err
 		}
 
 		for _, ebsSnapshot := range ebsSnapshotList.Snapshots {
@@ -39,7 +40,7 @@ func ListEbsSnapshotForDeletion(client clientpkg.Client, logger logr.Logger) []*
 		}
 	}
 
-	return ebsSnapshotsToBeDeleted
+	return ebsSnapshotsToBeDeleted, nil
 }
 
 // DeleteEbsSnapshots deletes the Ebs Snapshot
@@ -124,7 +125,10 @@ func DeleteEbsVolumes(client clientpkg.Client, ebsVolumesToBeDeleted []*string, 
 
 // CleanEbsSnapshots lists and deletes EBS Snapshots
 func CleanEbsSnapshots(client clientpkg.Client, logger logr.Logger) error {
-	ebsSnapshotsToBeDeleted := ListEbsSnapshotForDeletion(client, logger)
+	ebsSnapshotsToBeDeleted, err := ListEbsSnapshotForDeletion(client, logger)
+	if err != nil {
+		return err
+	}
 	err := DeleteEbsSnapshots(client, ebsSnapshotsToBeDeleted, logger)
 	if err != nil {
 		logger.Error(err, "Failed to delete EBS snapshots")
