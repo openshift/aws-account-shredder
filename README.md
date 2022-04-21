@@ -19,8 +19,8 @@ state.
 
 First make sure you have the following environment variables defined:
 ```
-AWS_ACCESS_KEY_ID           # Access Key for the aws account that should be shredded
-AWS_SECRET_ACCESS_KEY       # Secret Key for the aws account that should be shredded
+AWS_ACCESS_KEY_ID           # IAM account that has permission to shred the accounts
+AWS_SECRET_ACCESS_KEY       # Secret key for the IAM account above
 AWS_ACCOUNTS_TO_SHRED_FILE  # AWS account IDs that should be shredded, 1 id per line
 ```
 
@@ -78,7 +78,7 @@ make shred-accounts-status
 
 You can remove successfully shredded accounts to reduce unnecessary shredder work on large AWS Account ID lists with:
 ```
-make shred-accounts-clean
+make shred-accounts-cleanup
 ```
 
 Example:
