@@ -10,10 +10,12 @@ import (
 )
 
 const (
-	awsCredsSecretIDKey     = "aws_access_key_id"
+	awsCredsSecretIDKey = "aws_access_key_id"
+	// #nosec - G101 no hardcoded credentials
 	awsCredsSecretAccessKey = "aws_secret_access_key"
-	namespace               = "aws-account-shredder"             // change the namespace according to your environment. this is the namespace, from where secret has to retreived from
-	secretName              = "aws-account-shredder-credentials" // the name of the secret to be read
+	namespace               = "aws-account-shredder" // change the namespace according to your environment. this is the namespace, from where secret has to retreived from
+	// #nosec - G101 no hardcoded credentials
+	secretName = "aws-account-shredder-credentials" // the name of the secret to be read
 )
 
 // read the credentials stored in aws-account-shredder to start up the connection to AWS
