@@ -10,7 +10,7 @@ Once deployed, the AWS Account Shredder runs continuously looking for Account CR
 with a "Failed" state. Any such Account CR's will have their associated AWS resources cleaned up before resetting the Account CR
 state.
 
-## Prerequisites
+## Prerequisites 
 * [osdctl](https://github.com/openshift/osdctl/) available in your `$PATH`
 * a local kubernetes cluster ([crc](https://github.com/code-ready/crc/) or [kind](https://kind.sigs.k8s.io/))
 * the Openshift Client [oc](https://github.com/openshift/oc)
